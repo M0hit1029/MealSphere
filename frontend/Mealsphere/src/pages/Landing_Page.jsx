@@ -4,8 +4,9 @@ import Navbar from "../components/Navbar";
 
 function Landing() {
   const [allReviews, setAllReviews] = useState([
-    { text: "Dorm dinners are a blast now!", name: "Alex, Student" },
-    { text: "Meal prep sanity, finally!", name: "Priya, Busy Mom" },
+    { text: "MealSphere transformed our mess management completely. Highly recommended!", name: "Alex Kumar, Student" },
+    { text: "Finally, a solution that makes meal planning effortless and efficient.", name: "Priya Sharma, Working Professional" },
+    { text: "The booking system is intuitive and saves so much time every day.", name: "Rahul Patel, Hostel Resident" },
   ]);
 
   const handleAddReview = (newReview) => {
@@ -13,7 +14,7 @@ function Landing() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-100 to-purple-50 flex flex-col overflow-x-hidden">
+    <div className="min-h-screen bg-white flex flex-col">
       <Navbar />
       <HeroSection />
       <AboutUs />
@@ -29,75 +30,54 @@ function HeroSection() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    setIsVisible(true);
+    const timer = setTimeout(() => setIsVisible(true), 100);
+    return () => clearTimeout(timer);
   }, []);
 
   return (
-    <div className="relative w-full h-screen overflow-hidden">
-      {/* Animated Background */}
+    <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
+      {/* Background Image */}
       <div className="absolute inset-0">
         <img
           src="/lbg.jpg"
-          alt="Food Mess Management"
-          className="w-full h-full object-cover brightness-75 scale-105 animate-float"
+          alt="Food Management"
+          className="w-full h-full object-cover"
         />
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/60 via-blue-900/40 to-indigo-900/60" />
-        {/* Animated Particles */}
-        <div className="absolute inset-0">
-          {[...Array(20)].map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-2 h-2 bg-white/20 rounded-full animate-pulse"
-              style={{
-                left: `${Math.random() * 100}%`,
-                top: `${Math.random() * 100}%`,
-                animationDelay: `${Math.random() * 3}s`,
-                animationDuration: `${2 + Math.random() * 2}s`,
-              }}
-            />
-          ))}
-        </div>
+        <div className="absolute inset-0 bg-gradient-to-r from-slate-900/80 via-slate-800/70 to-slate-900/80" />
       </div>
 
       {/* Content */}
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4 md:px-8">
-        <div className={`transform transition-all duration-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-          <h1 className="text-5xl md:text-8xl font-extrabold leading-tight tracking-wide mb-6">
-            <span className="block animate-slideIn">
-              <span className="bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 bg-clip-text text-transparent drop-shadow-2xl animate-glow">
-                Your Mess,
-              </span>
-            </span>
-            <span className="block animate-slideIn animate-delay-300">
-              <span className="bg-gradient-to-r from-yellow-400 via-orange-500 to-red-500 bg-clip-text text-transparent drop-shadow-2xl animate-glow">
-                Organized, Simplified
-              </span>
+      <div className="relative z-10 max-w-6xl mx-auto px-6 text-center">
+        <div className={`transition-all duration-1000 ease-out ${
+          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        }`}>
+          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
+            Streamline Your
+            <span className="block bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
+              Mess Management
             </span>
           </h1>
           
-          <p className="text-white/90 text-xl md:text-3xl font-light mb-8 animate-fadeIn animate-delay-500 max-w-4xl mx-auto leading-relaxed">
-            Discover Today's Menu, Book Meals, and Stay in Control — Seamlessly.
+          <p className="text-xl md:text-2xl text-gray-200 mb-12 max-w-3xl mx-auto leading-relaxed">
+            Connect with local messes, book meals in advance, and enjoy hassle-free dining with our comprehensive management platform.
           </p>
           
-          <div className="flex flex-col sm:flex-row gap-4 justify-center animate-slideUp animate-delay-500">
+          <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
             <Link to="/signup">
-              <button className="btn-primary text-lg px-8 py-4 animate-glow">
+              <button className="bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold px-8 py-4 rounded-lg shadow-lg hover:shadow-xl hover:from-amber-600 hover:to-orange-700 transition-all duration-300 text-lg">
                 Get Started Today
-                <span className="ml-2">🚀</span>
               </button>
             </Link>
-            <button className="bg-white/10 backdrop-blur-md text-white font-semibold py-4 px-8 rounded-lg border border-white/20 hover:bg-white/20 transition-all duration-300 text-lg">
-              Watch Demo
-              <span className="ml-2">▶️</span>
+            <button className="border-2 border-white/30 text-white font-semibold px-8 py-4 rounded-lg hover:bg-white/10 hover:border-white/50 transition-all duration-300 text-lg backdrop-blur-sm">
+              Learn More
             </button>
           </div>
         </div>
 
         {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce">
-          <div className="w-6 h-10 border-2 border-white/50 rounded-full flex justify-center">
-            <div className="w-1 h-3 bg-white/70 rounded-full mt-2 animate-pulse"></div>
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+          <div className="w-6 h-10 border-2 border-white/40 rounded-full flex justify-center">
+            <div className="w-1 h-3 bg-white/60 rounded-full mt-2 animate-bounce"></div>
           </div>
         </div>
       </div>
@@ -115,7 +95,7 @@ function AboutUs() {
           setIsVisible(true);
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.2 }
     );
 
     const element = document.getElementById('about-section');
@@ -125,36 +105,75 @@ function AboutUs() {
   }, []);
 
   return (
-    <section id="about-section" className="w-full py-24 relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0 bg-gradient-to-r from-blue-50 to-purple-50">
-        <div className="absolute top-10 left-10 w-72 h-72 bg-gradient-to-r from-blue-400/20 to-purple-400/20 rounded-full blur-3xl animate-float"></div>
-        <div className="absolute bottom-10 right-10 w-96 h-96 bg-gradient-to-r from-amber-400/20 to-orange-400/20 rounded-full blur-3xl animate-float animate-delay-300"></div>
-      </div>
-
-      <div className="max-w-6xl mx-auto px-4 relative z-10">
-        <div className={`transform transition-all duration-1000 ${isVisible ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'}`}>
-          <h3 className="text-5xl md:text-6xl font-extrabold text-gradient mb-12 text-center tracking-tight animate-slideIn">
-            Who We Are
-          </h3>
+    <section id="about-section" className="py-20 bg-gray-50">
+      <div className="max-w-6xl mx-auto px-6">
+        <div className={`transition-all duration-800 ease-out ${
+          isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        }`}>
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              About MealSphere
+            </h2>
+            <div className="w-24 h-1 bg-gradient-to-r from-amber-500 to-orange-500 mx-auto mb-8"></div>
+          </div>
           
-          <div className="bg-white/80 backdrop-blur-lg rounded-3xl p-8 md:p-12 shadow-2xl border border-white/20 animate-scaleIn animate-delay-200">
-            <p className="text-slate-700 text-xl md:text-2xl leading-relaxed text-center font-light">
-              MealSphere is your partner in turning culinary chaos into delicious harmony. Born from the hustle of student kitchens and the whirlwind of busy schedules, we're here to streamline your meals with intuitive tools and a passion for connection.
-            </p>
-            <div className="mt-8 flex justify-center">
-              <div className="flex space-x-8">
-                <div className="text-center animate-fadeIn animate-delay-300">
-                  <div className="text-4xl font-bold text-gradient">1000+</div>
+          <div className="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+              <p className="text-lg text-gray-700 leading-relaxed mb-6">
+                MealSphere revolutionizes mess management by connecting students, working professionals, and mess owners through an intuitive digital platform. We understand the challenges of meal planning and aim to make dining convenient and accessible.
+              </p>
+              <p className="text-lg text-gray-700 leading-relaxed mb-8">
+                Our platform streamlines the entire process from menu discovery to meal booking, while helping reduce food waste through better planning and coordination.
+              </p>
+              
+              <div className="grid grid-cols-3 gap-6 text-center">
+                <div className="p-4">
+                  <div className="text-3xl font-bold text-amber-600 mb-2">1000+</div>
                   <div className="text-gray-600">Happy Users</div>
                 </div>
-                <div className="text-center animate-fadeIn animate-delay-500">
-                  <div className="text-4xl font-bold text-gradient">50+</div>
+                <div className="p-4">
+                  <div className="text-3xl font-bold text-amber-600 mb-2">50+</div>
                   <div className="text-gray-600">Partner Messes</div>
                 </div>
-                <div className="text-center animate-fadeIn animate-delay-500">
-                  <div className="text-4xl font-bold text-gradient">24/7</div>
+                <div className="p-4">
+                  <div className="text-3xl font-bold text-amber-600 mb-2">24/7</div>
                   <div className="text-gray-600">Support</div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="relative">
+              <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                <div className="space-y-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center">
+                      <span className="text-white font-bold">🎯</span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">Our Mission</h3>
+                      <p className="text-gray-600 text-sm">Simplifying meal management for everyone</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-green-600 rounded-lg flex items-center justify-center">
+                      <span className="text-white font-bold">🌱</span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">Sustainability</h3>
+                      <p className="text-gray-600 text-sm">Reducing food waste through smart planning</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-4">
+                    <div className="w-12 h-12 bg-gradient-to-r from-purple-500 to-purple-600 rounded-lg flex items-center justify-center">
+                      <span className="text-white font-bold">🤝</span>
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">Community</h3>
+                      <p className="text-gray-600 text-sm">Building connections through shared meals</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
@@ -189,74 +208,69 @@ function Features() {
 
   const features = [
     {
-      title: "Connect with Messes",
-      description: "Link up with messes near you—whether it's your dorm, campus canteen, or local dining hall. MealSphere brings people together over shared meals, making every mess a community.",
-      icon: "🤝",
-      gradient: "from-blue-500 to-cyan-500"
+      title: "Smart Mess Discovery",
+      description: "Find and connect with messes in your area. Browse menus, check availability, and read reviews from other users to make informed dining decisions.",
+      icon: "🔍",
+      color: "blue"
     },
     {
-      title: "Book Your Bite",
-      description: "Check the daily menu and secure your meal in advance. With MealSphere, reserve your spot at any mess effortlessly and enjoy your food without the wait.",
+      title: "Easy Meal Booking",
+      description: "Reserve your meals in advance with our simple booking system. Check daily menus and secure your spot without the hassle of waiting in queues.",
       icon: "📱",
-      gradient: "from-purple-500 to-pink-500"
+      color: "green"
     },
     {
-      title: "Fight Food Waste",
-      description: "We connect messes with NGOs and organizations to donate surplus food, ensuring nothing goes to waste and every extra bite reaches someone in need.",
+      title: "Reduce Food Waste",
+      description: "Help minimize food waste through better meal planning. Our system connects surplus food with those in need, creating a more sustainable dining ecosystem.",
       icon: "🌱",
-      gradient: "from-green-500 to-emerald-500"
+      color: "amber"
     }
   ];
 
-  return (
-    <section className="w-full py-24 relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-indigo-50 via-white to-cyan-50">
-        <div className="absolute top-0 left-0 w-full h-full opacity-30">
-          <div className="absolute top-20 left-20 w-64 h-64 bg-gradient-to-r from-purple-400/30 to-pink-400/30 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-20 w-80 h-80 bg-gradient-to-r from-blue-400/30 to-cyan-400/30 rounded-full blur-3xl animate-pulse animate-delay-300"></div>
-        </div>
-      </div>
+  const colorClasses = {
+    blue: "from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700",
+    green: "from-green-500 to-green-600 hover:from-green-600 hover:to-green-700",
+    amber: "from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700"
+  };
 
-      <div className="max-w-7xl mx-auto px-4 relative z-10">
-        <h3 className="text-5xl md:text-6xl font-extrabold text-gradient mb-16 text-center tracking-tight animate-slideIn">
-          Our Key Features
-        </h3>
+  return (
+    <section className="py-20 bg-white">
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            Key Features
+          </h2>
+          <div className="w-24 h-1 bg-gradient-to-r from-amber-500 to-orange-500 mx-auto mb-8"></div>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Discover how MealSphere makes mess management simple, efficient, and sustainable
+          </p>
+        </div>
         
-        <div className="grid gap-8 md:grid-cols-3">
+        <div className="grid md:grid-cols-3 gap-8">
           {features.map((feature, index) => (
             <div
               key={index}
               data-index={index}
-              className={`feature-card group relative overflow-hidden rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 transform ${
+              className={`feature-card group transition-all duration-500 ${
                 visibleCards.includes(index) 
-                  ? 'translate-y-0 opacity-100' 
-                  : 'translate-y-10 opacity-0'
+                  ? 'opacity-100 translate-y-0' 
+                  : 'opacity-0 translate-y-8'
               }`}
               style={{ transitionDelay: `${index * 200}ms` }}
             >
-              {/* Card Background */}
-              <div className={`absolute inset-0 bg-gradient-to-br ${feature.gradient} opacity-90 group-hover:opacity-100 transition-opacity duration-300`}></div>
-              
-              {/* Card Content */}
-              <div className="relative p-8 text-white">
-                <div className="text-6xl mb-6 animate-bounce-slow group-hover:animate-pulse">
-                  {feature.icon}
+              <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-8 border border-gray-100 h-full">
+                <div className={`w-16 h-16 bg-gradient-to-r ${colorClasses[feature.color]} rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300`}>
+                  <span className="text-2xl">{feature.icon}</span>
                 </div>
-                <h4 className="text-2xl font-bold mb-4 group-hover:text-yellow-200 transition-colors duration-300">
+                
+                <h3 className="text-xl font-bold text-gray-900 mb-4 group-hover:text-gray-700 transition-colors duration-300">
                   {feature.title}
-                </h4>
-                <p className="text-white/90 text-lg leading-relaxed group-hover:text-white transition-colors duration-300">
+                </h3>
+                
+                <p className="text-gray-600 leading-relaxed">
                   {feature.description}
                 </p>
-                
-                {/* Hover Effect */}
-                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-2xl"></div>
               </div>
-
-              {/* Decorative Elements */}
-              <div className="absolute top-4 right-4 w-20 h-20 bg-white/10 rounded-full blur-xl group-hover:bg-white/20 transition-all duration-300"></div>
-              <div className="absolute bottom-4 left-4 w-16 h-16 bg-white/10 rounded-full blur-lg group-hover:bg-white/20 transition-all duration-300"></div>
             </div>
           ))}
         </div>
@@ -267,33 +281,41 @@ function Features() {
 
 function Reviews({ reviews = [] }) {
   return (
-    <section className="w-full py-20 bg-gradient-to-r from-gray-50 to-blue-50">
-      <div className="max-w-6xl mx-auto px-4">
-        <h4 className="text-4xl font-extrabold text-gradient mb-12 text-center animate-slideIn">
-          What Our Users Say
-        </h4>
-        <div className="grid gap-8 md:grid-cols-2">
+    <section className="py-20 bg-gray-50">
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            What Our Users Say
+          </h2>
+          <div className="w-24 h-1 bg-gradient-to-r from-amber-500 to-orange-500 mx-auto"></div>
+        </div>
+        
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {reviews.length > 0 ? (
-            reviews.map((rev, index) => (
+            reviews.map((review, index) => (
               <div 
                 key={index} 
-                className="card p-8 hover-lift animate-fadeIn"
-                style={{ animationDelay: `${index * 200}ms` }}
+                className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 p-8 border border-gray-100"
               >
-                <div className="flex items-start space-x-4">
-                  <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-xl">
-                    {rev.name.charAt(0)}
+                <div className="flex items-center mb-4">
+                  <div className="w-12 h-12 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                    {review.name.charAt(0)}
                   </div>
-                  <div className="flex-1">
-                    <p className="text-gray-700 italic text-lg mb-3">"{rev.text}"</p>
-                    <p className="text-gradient-warm font-semibold">— {rev.name}</p>
+                  <div className="ml-4">
+                    <div className="flex text-amber-400 mb-1">
+                      {[...Array(5)].map((_, i) => (
+                        <span key={i}>⭐</span>
+                      ))}
+                    </div>
+                    <p className="font-semibold text-gray-900">{review.name}</p>
                   </div>
                 </div>
+                <p className="text-gray-700 italic leading-relaxed">"{review.text}"</p>
               </div>
             ))
           ) : (
-            <div className="col-span-2 text-center">
-              <div className="animate-bounce-slow text-6xl mb-4">💬</div>
+            <div className="col-span-full text-center py-12">
+              <div className="text-6xl mb-4">💬</div>
               <p className="text-gray-500 text-xl">No reviews yet. Be the first to share your experience!</p>
             </div>
           )}
@@ -307,12 +329,16 @@ function ContactAndReviews({ allReviews, onAddReview }) {
   const [review, setReview] = useState("");
   const [name, setName] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [contactForm, setContactForm] = useState({
+    name: "",
+    email: "",
+    message: ""
+  });
 
-  const handleSubmit = async (e) => {
+  const handleReviewSubmit = async (e) => {
     e.preventDefault();
     if (review && name) {
       setIsSubmitting(true);
-      // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
       
       const newReview = { text: review, name };
@@ -323,89 +349,92 @@ function ContactAndReviews({ allReviews, onAddReview }) {
     }
   };
 
+  const handleContactSubmit = (e) => {
+    e.preventDefault();
+    // Handle contact form submission
+    console.log("Contact form submitted:", contactForm);
+    setContactForm({ name: "", email: "", message: "" });
+  };
+
   return (
-    <section id="reviews" className="w-full py-20 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50">
-      <div className="max-w-6xl mx-auto px-4">
+    <section id="reviews" className="py-20 bg-white">
+      <div className="max-w-6xl mx-auto px-6">
         <div className="grid md:grid-cols-2 gap-12">
           {/* Contact Us */}
-          <div className="animate-slideIn">
-            <h3 className="text-4xl font-extrabold text-gradient mb-8 text-center">Contact Us</h3>
-            <div className="card-gradient p-8">
-              <form className="space-y-6">
-                <div className="relative">
+          <div>
+            <h3 className="text-3xl font-bold text-gray-900 mb-8">Get In Touch</h3>
+            <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100">
+              <form onSubmit={handleContactSubmit} className="space-y-6">
+                <div>
                   <input
                     type="text"
                     placeholder="Your Name"
-                    className="w-full p-4 bg-white/80 border-2 border-transparent rounded-xl focus:border-blue-500 focus:bg-white transition-all duration-300 text-gray-800 placeholder-gray-500"
+                    value={contactForm.name}
+                    onChange={(e) => setContactForm({...contactForm, name: e.target.value})}
+                    className="w-full p-4 bg-white border border-gray-200 rounded-lg focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all duration-300 outline-none"
+                    required
                   />
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                 </div>
-                <div className="relative">
+                <div>
                   <input
                     type="email"
                     placeholder="Your Email"
-                    className="w-full p-4 bg-white/80 border-2 border-transparent rounded-xl focus:border-blue-500 focus:bg-white transition-all duration-300 text-gray-800 placeholder-gray-500"
+                    value={contactForm.email}
+                    onChange={(e) => setContactForm({...contactForm, email: e.target.value})}
+                    className="w-full p-4 bg-white border border-gray-200 rounded-lg focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all duration-300 outline-none"
+                    required
                   />
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                 </div>
-                <div className="relative">
+                <div>
                   <textarea
                     placeholder="Your Message"
                     rows="4"
-                    className="w-full p-4 bg-white/80 border-2 border-transparent rounded-xl focus:border-blue-500 focus:bg-white transition-all duration-300 text-gray-800 placeholder-gray-500 resize-none"
+                    value={contactForm.message}
+                    onChange={(e) => setContactForm({...contactForm, message: e.target.value})}
+                    className="w-full p-4 bg-white border border-gray-200 rounded-lg focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all duration-300 outline-none resize-none"
+                    required
                   ></textarea>
-                  <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                 </div>
-                <button type="submit" className="btn-primary w-full text-lg">
+                <button 
+                  type="submit" 
+                  className="w-full bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold py-4 rounded-lg hover:from-amber-600 hover:to-orange-700 transition-all duration-300 shadow-lg hover:shadow-xl"
+                >
                   Send Message
-                  <span className="ml-2">📧</span>
                 </button>
               </form>
             </div>
           </div>
 
           {/* Write a Review */}
-          <div className="animate-slideIn animate-delay-200">
-            <h3 className="text-4xl font-extrabold text-gradient mb-8 text-center">Write a Review</h3>
-            <div className="card-gradient p-8">
-              <form onSubmit={handleSubmit} className="space-y-6">
-                <div className="relative">
+          <div>
+            <h3 className="text-3xl font-bold text-gray-900 mb-8">Share Your Experience</h3>
+            <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100">
+              <form onSubmit={handleReviewSubmit} className="space-y-6">
+                <div>
                   <textarea
                     value={review}
                     onChange={(e) => setReview(e.target.value)}
-                    className="w-full p-4 bg-white/80 border-2 border-transparent rounded-xl focus:border-purple-500 focus:bg-white transition-all duration-300 text-gray-800 placeholder-gray-500 resize-none"
+                    className="w-full p-4 bg-white border border-gray-200 rounded-lg focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all duration-300 outline-none resize-none"
                     rows="4"
-                    placeholder="Share your thoughts..."
+                    placeholder="Tell us about your experience with MealSphere..."
+                    required
                   ></textarea>
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
                 </div>
                 <div className="flex gap-4">
-                  <div className="relative flex-1">
-                    <input
-                      value={name}
-                      onChange={(e) => setName(e.target.value)}
-                      type="text"
-                      className="w-full p-4 bg-white/80 border-2 border-transparent rounded-xl focus:border-purple-500 focus:bg-white transition-all duration-300 text-gray-800 placeholder-gray-500"
-                      placeholder="Your Name"
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-pink-500/20 rounded-xl opacity-0 hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-                  </div>
+                  <input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    type="text"
+                    className="flex-1 p-4 bg-white border border-gray-200 rounded-lg focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all duration-300 outline-none"
+                    placeholder="Your Name"
+                    required
+                  />
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="btn-secondary px-8 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold px-8 py-4 rounded-lg hover:from-amber-600 hover:to-orange-700 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {isSubmitting ? (
-                      <div className="flex items-center">
-                        <div className="spinner w-5 h-5 mr-2"></div>
-                        Submitting...
-                      </div>
-                    ) : (
-                      <>
-                        Submit
-                        <span className="ml-2">⭐</span>
-                      </>
-                    )}
+                    {isSubmitting ? "Submitting..." : "Submit Review"}
                   </button>
                 </div>
               </form>
@@ -421,46 +450,53 @@ function Footer() {
   const currentYear = new Date().getFullYear();
   
   return (
-    <footer className="w-full bg-gradient-to-r from-gray-900 via-blue-900 to-purple-900 py-12 mt-auto text-white relative overflow-hidden">
-      {/* Background Animation */}
-      <div className="absolute inset-0">
-        {[...Array(15)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute w-1 h-1 bg-white/20 rounded-full animate-pulse"
-            style={{
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${Math.random() * 3}s`,
-              animationDuration: `${2 + Math.random() * 2}s`,
-            }}
-          />
-        ))}
-      </div>
-
-      <div className="max-w-6xl mx-auto px-4 text-center relative z-10">
-        <div className="mb-8">
-          <h3 className="text-4xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent mb-4 animate-glow">
-            MealSphere
-          </h3>
-          <p className="text-gray-300 text-lg">Making every meal a delightful experience</p>
+    <footer className="bg-gray-900 text-white py-16">
+      <div className="max-w-6xl mx-auto px-6">
+        <div className="grid md:grid-cols-4 gap-8 mb-12">
+          <div className="md:col-span-2">
+            <h3 className="text-3xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent mb-4">
+              MealSphere
+            </h3>
+            <p className="text-gray-400 leading-relaxed mb-6 max-w-md">
+              Revolutionizing mess management through technology. Connect, book, and enjoy meals with ease while contributing to a sustainable future.
+            </p>
+            <div className="flex space-x-4">
+              <a href="#" className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-amber-600 transition-colors duration-300">
+                📧
+              </a>
+              <a href="#" className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-amber-600 transition-colors duration-300">
+                📱
+              </a>
+              <a href="#" className="w-10 h-10 bg-gray-800 rounded-lg flex items-center justify-center hover:bg-amber-600 transition-colors duration-300">
+                🌐
+              </a>
+            </div>
+          </div>
+          
+          <div>
+            <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
+            <ul className="space-y-2 text-gray-400">
+              <li><a href="#about-section" className="hover:text-amber-400 transition-colors duration-300">About Us</a></li>
+              <li><a href="#features" className="hover:text-amber-400 transition-colors duration-300">Features</a></li>
+              <li><a href="#reviews" className="hover:text-amber-400 transition-colors duration-300">Reviews</a></li>
+              <li><Link to="/signup" className="hover:text-amber-400 transition-colors duration-300">Get Started</Link></li>
+            </ul>
+          </div>
+          
+          <div>
+            <h4 className="text-lg font-semibold mb-4">Support</h4>
+            <ul className="space-y-2 text-gray-400">
+              <li><a href="#" className="hover:text-amber-400 transition-colors duration-300">Help Center</a></li>
+              <li><a href="#" className="hover:text-amber-400 transition-colors duration-300">Contact Us</a></li>
+              <li><a href="#" className="hover:text-amber-400 transition-colors duration-300">Privacy Policy</a></li>
+              <li><a href="#" className="hover:text-amber-400 transition-colors duration-300">Terms of Service</a></li>
+            </ul>
+          </div>
         </div>
         
-        <div className="flex justify-center space-x-8 mb-8">
-          <a href="#" className="text-gray-300 hover:text-yellow-400 transition-colors duration-300 text-2xl hover:scale-110 transform">
-            📧
-          </a>
-          <a href="#" className="text-gray-300 hover:text-yellow-400 transition-colors duration-300 text-2xl hover:scale-110 transform">
-            📱
-          </a>
-          <a href="#" className="text-gray-300 hover:text-yellow-400 transition-colors duration-300 text-2xl hover:scale-110 transform">
-            🌐
-          </a>
-        </div>
-        
-        <div className="border-t border-gray-700 pt-8">
-          <p className="text-gray-400 text-lg animate-fadeIn">
-            © {currentYear} MealSphere. All Rights Reserved. Made with ❤️ for food lovers everywhere.
+        <div className="border-t border-gray-800 pt-8 text-center">
+          <p className="text-gray-400">
+            © {currentYear} MealSphere. All rights reserved. Made with ❤️ for better dining experiences.
           </p>
         </div>
       </div>
