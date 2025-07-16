@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import Navbar from "../components/UserDashboardNavbar";
+import { Clock, MapPin, Star, Calendar, Utensils } from "lucide-react";
 import axios from "axios";
 
 const MessCard = ({ mess, onMonthlyBooking, onDailyReservation, isReservationAllowed, reservedMesses }) => {
   const { name, menu, address, _id } = mess;
+  const [isHovered, setIsHovered] = useState(false);
 
   const dayDishes = menu?.dayMeal?.dishes || [];
   const nightDishes = menu?.nightMeal?.dishes || [];
@@ -17,98 +19,146 @@ const MessCard = ({ mess, onMonthlyBooking, onDailyReservation, isReservationAll
   );
 
   return (
-    <div className="bg-white p-4 rounded-xl shadow-md flex flex-col items-center transition-transform hover:scale-105 hover:shadow-lg w-full md:max-w-xl lg:max-w-2xl mx-auto">
-      <img
-        src={
-          "https://plus.unsplash.com/premium_photo-1669742928112-19364a33b530?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
-        }
-        alt={name}
-        className="w-full h-36 object-cover mb-3 rounded-lg"
-      />
-      <h3 className="text-xl font-bold text-gray-800 text-center mb-1">{name}</h3>
-      <p className="text-sm text-gray-600 text-center mb-3">{address || "No address available"}</p>
-      <div className="w-full space-y-3">
-        <div className="bg-gray-50 p-3 rounded-lg">
-          <h4 className="text-sm font-semibold text-gray-700 mb-1">Day Meal</h4>
-          {dayDishes.length > 0 ? (
-            <ul className="space-y-1">
-              {dayDishes.map((dish, index) => (
-                <li key={index} className="text-gray-600">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">{dish.name}</span>
-                    <span className="text-sm font-semibold text-green-600">₹{dish.price}</span>
-                  </div>
-                  {dish.items?.length > 0 && (
-                    <p className="text-xs text-gray-500 italic mt-0.5">Items: {dish.items.join(", ")}</p>
-                  )}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-gray-500 italic">No day meal available</p>
-          )}
-        </div>
-        <div className="bg-gray-50 p-3 rounded-lg">
-          <h4 className="text-sm font-semibold text-gray-700 mb-1">Night Meal</h4>
-          {nightDishes.length > 0 ? (
-            <ul className="space-y-1">
-              {nightDishes.map((dish, index) => (
-                <li key={index} className="text-gray-600">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">{dish.name}</span>
-                    <span className="text-sm font-semibold text-green-600">₹{dish.price}</span>
-                  </div>
-                  {dish.items?.length > 0 && (
-                    <p className="text-xs text-gray-500 italic mt-0.5">Items: {dish.items.join(", ")}</p>
-                  )}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-sm text-gray-500 italic">No night meal available</p>
-          )}
+    <div 
+      className={`card group relative overflow-hidden transition-all duration-500 ${
+        isHovered ? 'scale-105 shadow-2xl' : ''
+      }`}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {/* Background Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+      
+      {/* Image with Overlay */}
+      <div className="relative overflow-hidden rounded-t-xl">
+        <img
+          src="https://plus.unsplash.com/premium_photo-1669742928112-19364a33b530?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          alt={name}
+          className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+        
+        {/* Floating Rating */}
+        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1 animate-fadeIn">
+          <Star className="w-4 h-4 text-yellow-500 fill-current" />
+          <span className="text-sm font-semibold">4.5</span>
         </div>
       </div>
-      <button
-        onClick={() => onMonthlyBooking(name)}
-        className={`w-full px-4 py-1.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors mb-3 ${
-          !hasSpots ? "opacity-50 cursor-not-allowed" : ""
-        }`}
-        disabled={!hasSpots}
-      >
-        Enroll Monthly
-      </button>
-      <div className="flex gap-3 w-full justify-center">
-        {reservedForDay ? (
-          <p className="flex-1 text-sm text-gray-600 text-center">Already Reserved for Day</p>
-        ) : (
+
+      <div className="p-6 relative z-10">
+        {/* Header */}
+        <div className="mb-4">
+          <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors duration-300">
+            {name}
+          </h3>
+          <div className="flex items-center text-gray-600 text-sm">
+            <MapPin className="w-4 h-4 mr-1" />
+            <span className="truncate">{address || "No address available"}</span>
+          </div>
+        </div>
+
+        {/* Menu Sections */}
+        <div className="space-y-4 mb-6">
+          {/* Day Meal */}
+          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border border-yellow-200/50">
+            <div className="flex items-center mb-2">
+              <div className="w-3 h-3 bg-yellow-400 rounded-full mr-2 animate-pulse"></div>
+              <h4 className="text-sm font-semibold text-yellow-800">Day Meal</h4>
+            </div>
+            {dayDishes.length > 0 ? (
+              <div className="space-y-2">
+                {dayDishes.slice(0, 2).map((dish, index) => (
+                  <div key={index} className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-700">{dish.name}</span>
+                    <span className="text-sm font-bold text-green-600">₹{dish.price}</span>
+                  </div>
+                ))}
+                {dayDishes.length > 2 && (
+                  <p className="text-xs text-gray-500">+{dayDishes.length - 2} more items</p>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500 italic">No day meal available</p>
+            )}
+          </div>
+
+          {/* Night Meal */}
+          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200/50">
+            <div className="flex items-center mb-2">
+              <div className="w-3 h-3 bg-blue-400 rounded-full mr-2 animate-pulse"></div>
+              <h4 className="text-sm font-semibold text-blue-800">Night Meal</h4>
+            </div>
+            {nightDishes.length > 0 ? (
+              <div className="space-y-2">
+                {nightDishes.slice(0, 2).map((dish, index) => (
+                  <div key={index} className="flex justify-between items-center">
+                    <span className="text-sm font-medium text-gray-700">{dish.name}</span>
+                    <span className="text-sm font-bold text-green-600">₹{dish.price}</span>
+                  </div>
+                ))}
+                {nightDishes.length > 2 && (
+                  <p className="text-xs text-gray-500">+{nightDishes.length - 2} more items</p>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500 italic">No night meal available</p>
+            )}
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="space-y-3">
           <button
-            onClick={() => onDailyReservation(mess._id, "day")}
-            className={`flex-1 px-4 py-1.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors ${
-              !hasSpots || !isReservationAllowed.day
-                ? "opacity-50 cursor-not-allowed"
-                : ""
+            onClick={() => onMonthlyBooking(name)}
+            className={`w-full btn-primary flex items-center justify-center gap-2 ${
+              !hasSpots ? "opacity-50 cursor-not-allowed" : ""
             }`}
-            disabled={!hasSpots || !isReservationAllowed.day}
+            disabled={!hasSpots}
           >
-            Reserve for Day
+            <Calendar className="w-4 h-4" />
+            Enroll Monthly
           </button>
-        )}
-        {reservedForNight ? (
-          <p className="flex-1 text-sm text-gray-600 text-center">Already Reserved for Night</p>
-        ) : (
-          <button
-            onClick={() => onDailyReservation(mess._id, "night")}
-            className={`flex-1 px-4 py-1.5 bg-teal-600 text-white rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors ${
-              !hasSpots || !isReservationAllowed.night
-                ? "opacity-50 cursor-not-allowed"
-                : ""
-            }`}
-            disabled={!hasSpots || !isReservationAllowed.night}
-          >
-            Reserve for Night
-          </button>
-        )}
+          
+          <div className="grid grid-cols-2 gap-3">
+            {reservedForDay ? (
+              <div className="text-center py-2 px-4 bg-gray-100 rounded-lg text-sm text-gray-600">
+                Day Reserved ✓
+              </div>
+            ) : (
+              <button
+                onClick={() => onDailyReservation(mess._id, "day")}
+                className={`btn-success text-sm flex items-center justify-center gap-1 ${
+                  !hasSpots || !isReservationAllowed.day
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
+                disabled={!hasSpots || !isReservationAllowed.day}
+              >
+                <Utensils className="w-3 h-3" />
+                Day Meal
+              </button>
+            )}
+            
+            {reservedForNight ? (
+              <div className="text-center py-2 px-4 bg-gray-100 rounded-lg text-sm text-gray-600">
+                Night Reserved ✓
+              </div>
+            ) : (
+              <button
+                onClick={() => onDailyReservation(mess._id, "night")}
+                className={`bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 text-sm flex items-center justify-center gap-1 ${
+                  !hasSpots || !isReservationAllowed.night
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
+                disabled={!hasSpots || !isReservationAllowed.night}
+              >
+                <Utensils className="w-3 h-3" />
+                Night Meal
+              </button>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -133,14 +183,15 @@ function UserDashboard() {
     const now = new Date();
     const currentHour = now.getHours();
     setIsReservationAllowed({
-      day: currentHour < 9, // Before 9 AM
-      night: currentHour < 18, // Before 6 PM
+      day: currentHour < 9,
+      night: currentHour < 18,
     });
   };
 
   useEffect(() => {
     checkReservationTime();
-    const interval = setInterval(checkReservationTime, 60000); // Update every minute
+    const interval = setInterval(checkReservationTime, 60000);
+    
     if (navigator.geolocation) {
       setLoading(true);
       navigator.geolocation.getCurrentPosition(
@@ -152,9 +203,7 @@ function UserDashboard() {
           fetchEnrolledMess();
         },
         (err) => {
-          setError(
-            "Unable to get your location. Please provide coordinates manually or try again."
-          );
+          setError("Unable to get your location. Please provide coordinates manually or try again.");
           setLoading(false);
         }
       );
@@ -162,7 +211,8 @@ function UserDashboard() {
       setError("Geolocation is not supported by your browser.");
       setLoading(false);
     }
-    return () => clearInterval(interval); // Cleanup interval on unmount
+    
+    return () => clearInterval(interval);
   }, []);
 
   const fetchMesses = async (lat, lng) => {
@@ -200,15 +250,14 @@ function UserDashboard() {
       );
       setEnrolledMess(response.data.userMess);
     } catch (err) {
-      setEnrollmentError(
-        err.response?.data?.message || "Failed to fetch enrolled mess."
-      );
+      setEnrollmentError(err.response?.data?.message || "Failed to fetch enrolled mess.");
     }
   };
 
   const handleCancelReservation = async (reservationId, messName, mealType) => {
     const now = new Date();
     const currentHour = now.getHours();
+    
     if (mealType === 'day' && currentHour >= 9) {
       alert("Cannot cancel day meal reservation after 9 AM.");
       return;
@@ -253,9 +302,7 @@ function UserDashboard() {
         { withCredentials: true }
       );
       if (response.status === 200) {
-        alert(
-          `To join the ${messName}, please visit the mess owner at their location (${response.data.mess.address}) and pay ₹${selectedMess.price}.`
-        );
+        alert(`To join the ${messName}, please visit the mess owner at their location (${response.data.mess.address}) and pay ₹${selectedMess.price}.`);
       }
     } catch (err) {
       if (err.response?.status === 400) {
@@ -268,11 +315,7 @@ function UserDashboard() {
 
   const handleDailyReservation = async (messId, time) => {
     const selectedMess = messData.find((mess) => mess._id === messId);
-    if (
-      window.confirm(
-        `Are you sure you want to reserve a meal for today at ${selectedMess.name}? You can pay when you go to eat.`
-      )
-    ) {
+    if (window.confirm(`Are you sure you want to reserve a meal for today at ${selectedMess.name}? You can pay when you go to eat.`)) {
       try {
         await axios.post(
           `${import.meta.env.VITE_BASE_URL}/user/reserve`,
@@ -282,9 +325,7 @@ function UserDashboard() {
           },
           { withCredentials: true }
         );
-        alert(
-          `Reservation confirmed for today at ${selectedMess.name}! Please visit ${selectedMess.name} to eat and pay.`
-        );
+        alert(`Reservation confirmed for today at ${selectedMess.name}! Please visit ${selectedMess.name} to eat and pay.`);
         fetchReservations();
       } catch (err) {
         alert(err.response?.data?.message || "Failed to reserve meal.");
@@ -296,63 +337,102 @@ function UserDashboard() {
   const hasNightReservation = reservedMesses.some((res) => res.mealType === "night");
 
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col p-7">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex flex-col">
       <Navbar />
-      <div className="flex flex-1 flex-col mt-7 p-6">
+      
+      <div className="flex flex-1 flex-col mt-20 p-6">
+        {/* Time-based Reservation Alert */}
+        <div className="mb-6 animate-slideIn">
+          <div className="bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200 rounded-xl p-4 flex items-center gap-3">
+            <Clock className="w-5 h-5 text-amber-600" />
+            <div className="text-amber-800">
+              <span className="font-semibold">Reservation Times:</span>
+              <span className="ml-2">Day meals before 9 AM • Night meals before 6 PM</span>
+            </div>
+          </div>
+        </div>
+
         {/* Enrolled Mess Section */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Your Enrolled Mess</h2>
+        <div className="mb-8 animate-fadeIn">
+          <h2 className="text-3xl font-bold text-gradient mb-6 flex items-center gap-2">
+            <Star className="w-8 h-8 text-yellow-500" />
+            Your Enrolled Mess
+          </h2>
+          
           {loading ? (
-            <p className="text-gray-600">Loading enrolled mess...</p>
+            <div className="card p-8 text-center">
+              <div className="spinner mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading enrolled mess...</p>
+            </div>
           ) : enrollmentError ? (
-            <p className="text-red-600">
-              {enrollmentError === "User is not enrolled in any mess"
-                ? "You are not enrolled in any mess."
-                : enrollmentError === "Request Not accepted yet"
-                ? "Your enrollment request is pending approval."
-                : enrollmentError}
-            </p>
-          ) : enrolledMess ? (
-            <div className="bg-white p-4 rounded-lg shadow-md flex flex-col items-center">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                {enrolledMess.messId.name || "Unknown Mess"}
-              </h3>
-              <p className="text-sm text-gray-600 mb-2">
-                {enrolledMess.messId.address || "No address available"}
-              </p>
-              <p className="text-sm font-medium text-blue-600">
-                Enrolled for monthly meals
+            <div className="card p-6 text-center">
+              <div className="text-6xl mb-4">🏠</div>
+              <p className="text-gray-600 text-lg">
+                {enrollmentError === "User is not enrolled in any mess"
+                  ? "You are not enrolled in any mess yet."
+                  : enrollmentError === "Request Not accepted yet"
+                  ? "Your enrollment request is pending approval."
+                  : enrollmentError}
               </p>
             </div>
-          ) : (
-            <p className="text-gray-600">No enrolled mess found.</p>
-          )}
+          ) : enrolledMess ? (
+            <div className="card p-6 bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                  {enrolledMess.messId.name?.charAt(0) || "M"}
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-1">
+                    {enrolledMess.messId.name || "Unknown Mess"}
+                  </h3>
+                  <p className="text-gray-600 mb-2 flex items-center gap-1">
+                    <MapPin className="w-4 h-4" />
+                    {enrolledMess.messId.address || "No address available"}
+                  </p>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                    Monthly Member
+                  </span>
+                </div>
+              </div>
+            </div>
+          ) : null}
         </div>
 
         {/* Today's Reservations Section */}
-        <div className="mb-8">
-          <h2 className="text-2xl font-bold text-gray-800 mb-4">Your Reservations for Today</h2>
+        <div className="mb-8 animate-fadeIn animate-delay-200">
+          <h2 className="text-3xl font-bold text-gradient mb-6 flex items-center gap-2">
+            <Calendar className="w-8 h-8 text-blue-500" />
+            Today's Reservations
+          </h2>
+          
           {loading ? (
-            <p className="text-gray-600">Loading reservations...</p>
+            <div className="card p-8 text-center">
+              <div className="spinner mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading reservations...</p>
+            </div>
           ) : reservedMesses.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {reservedMesses.map((reservation, index) => (
                 <div
                   key={index}
-                  className="bg-white p-4 rounded-lg shadow-md flex flex-col items-center"
+                  className="card p-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200 animate-scaleIn"
+                  style={{ animationDelay: `${index * 100}ms` }}
                 >
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                    {reservation.messName || "Unknown Mess"}
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-2">
-                    {reservation.address || "No address available"}
-                  </p>
-                  <p className="text-sm font-medium text-green-600 mb-3">
-                    Reserved for: {reservation.mealType === "day" ? "Day" : "Night"}
-                  </p>
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ${
+                      reservation.mealType === 'day' ? 'bg-gradient-to-r from-yellow-500 to-orange-500' : 'bg-gradient-to-r from-blue-500 to-indigo-500'
+                    }`}>
+                      <Utensils className="w-6 h-6" />
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-gray-800">{reservation.messName || "Unknown Mess"}</h3>
+                      <p className="text-sm text-gray-600">{reservation.mealType === "day" ? "Day Meal" : "Night Meal"}</p>
+                    </div>
+                  </div>
+                  
                   <button
                     onClick={() => handleCancelReservation(reservation.reservationId, reservation.messName, reservation.mealType)}
-                    className={`px-4 py-1.5 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors ${
+                    className={`w-full btn-danger text-sm ${
                       (reservation.mealType === "day" && new Date().getHours() >= 9) ||
                       (reservation.mealType === "night" && new Date().getHours() >= 18)
                         ? "opacity-50 cursor-not-allowed"
@@ -369,31 +449,37 @@ function UserDashboard() {
               ))}
             </div>
           ) : (
-            <p className="text-gray-600">No reservations for today.</p>
+            <div className="card p-8 text-center">
+              <div className="text-6xl mb-4 animate-bounce">📅</div>
+              <p className="text-gray-600 text-lg">No reservations for today.</p>
+            </div>
           )}
         </div>
 
         {/* Search and Sort */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="relative w-1/3">
+        <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 animate-slideIn animate-delay-300">
+          <div className="relative w-full md:w-1/2">
             <input
               type="text"
               placeholder="Search mess options..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full p-3 pl-10 border border-gray-300 rounded-full shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full p-4 pl-12 bg-white/80 backdrop-blur-sm border-2 border-transparent rounded-full shadow-lg focus:border-blue-500 focus:bg-white transition-all duration-300 text-gray-800 placeholder-gray-500"
             />
-            <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+            <div className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-500">
               🔍
-            </span>
+            </div>
           </div>
-          <div className="flex gap-2">
+          
+          <div className="flex gap-3">
             {["Price ascending", "Price descending"].map((option) => (
               <button
                 key={option}
-                className={`px-4 py-2 border rounded-lg shadow-sm ${
-                  sortOption === option ? "bg-gray-200" : "bg-white"
-                } hover:bg-gray-100 transition-colors`}
+                className={`px-6 py-3 rounded-full font-medium transition-all duration-300 ${
+                  sortOption === option 
+                    ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg" 
+                    : "bg-white/80 text-gray-700 hover:bg-white shadow-md hover:shadow-lg"
+                }`}
                 onClick={() => setSortOption(option)}
               >
                 {option === "Price ascending" ? "Price ↑" : "Price ↓"}
@@ -404,39 +490,60 @@ function UserDashboard() {
 
         {/* Loading and Error States */}
         {loading && (
-          <div className="text-center text-gray-600 p-6">Loading messes...</div>
+          <div className="text-center p-12">
+            <div className="spinner mx-auto mb-4"></div>
+            <p className="text-gray-600 text-lg">Loading delicious options...</p>
+          </div>
         )}
-        {error && <div className="text-center text-red-600 p-6">{error}</div>}
+        
+        {error && (
+          <div className="card p-8 text-center bg-red-50 border-red-200">
+            <div className="text-6xl mb-4">⚠️</div>
+            <p className="text-red-600 text-lg">{error}</p>
+          </div>
+        )}
 
-        {/* Mess Options Grid with Reservation Status */}
+        {/* Mess Options Grid */}
         {!loading && !error && (
-          <div>
-            {hasDayReservation && (
-              <p className="text-center text-green-600 mb-4">
-                You have already reserved a mess for day today.
-              </p>
+          <div className="animate-fadeIn animate-delay-500">
+            {(hasDayReservation || hasNightReservation) && (
+              <div className="mb-6 p-4 bg-green-100 border border-green-200 rounded-xl">
+                <div className="flex items-center gap-2 text-green-800">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                  <span className="font-medium">
+                    {hasDayReservation && hasNightReservation 
+                      ? "You have reservations for both day and night meals today!"
+                      : hasDayReservation 
+                      ? "You have a day meal reservation today!"
+                      : "You have a night meal reservation today!"}
+                  </span>
+                </div>
+              </div>
             )}
-            {hasNightReservation && (
-              <p className="text-center text-green-600 mb-4">
-                You have already reserved a mess for night today.
-              </p>
-            )}
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
               {filteredMessOptions.length > 0 ? (
                 filteredMessOptions.map((mess, index) => (
-                  <MessCard
+                  <div
                     key={index}
-                    mess={mess}
-                    onMonthlyBooking={handleMonthlyBooking}
-                    onDailyReservation={handleDailyReservation}
-                    isReservationAllowed={isReservationAllowed}
-                    reservedMesses={reservedMesses}
-                  />
+                    className="animate-scaleIn"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <MessCard
+                      mess={mess}
+                      onMonthlyBooking={handleMonthlyBooking}
+                      onDailyReservation={handleDailyReservation}
+                      isReservationAllowed={isReservationAllowed}
+                      reservedMesses={reservedMesses}
+                    />
+                  </div>
                 ))
               ) : (
-                <p className="col-span-full text-center text-gray-600">
-                  No messes found within 5km.
-                </p>
+                <div className="col-span-full card p-12 text-center">
+                  <div className="text-6xl mb-4 animate-bounce">🔍</div>
+                  <p className="text-gray-600 text-xl">No messes found within 5km.</p>
+                  <p className="text-gray-500 mt-2">Try adjusting your search or check back later.</p>
+                </div>
               )}
             </div>
           </div>
