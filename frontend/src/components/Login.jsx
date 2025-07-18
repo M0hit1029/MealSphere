@@ -117,36 +117,43 @@ function AuthSection({ userType, navigate }) {
     }
   };
 
-  const handleSignup = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
+const handleSignup = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError("");
 
-    try {
-      const endpoint =
-        effectiveUserType === "customer"
-          ? API_ENDPOINTS.customer.signup
-          : API_ENDPOINTS.messOwner.signup;
+  try {
+    const endpoint =
+      effectiveUserType === "customer"
+        ? API_ENDPOINTS.customer.signup
+        : API_ENDPOINTS.messOwner.signup;
 
-      const response = await axios.post(endpoint, {
+    const response = await axios.post(
+      endpoint,
+      {
         name: formData.name,
         phone: formData.phone,
         email: formData.email,
         password: formData.password,
-      });
+      },
+      {
+        withCredentials: true, // important to allow cookies from backend
+      }
+    );
 
-      localStorage.setItem("token", response.data.token);
-      navigate(
-        effectiveUserType === "customer" ? "/user-dashboard" : "/mess-dashboard"
-      );
-    } catch (err) {
-      setError(
-        err.response?.data?.message || "Signup failed. Please try again."
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
+    // No need to store token in localStorage
+    // Cookie will be handled by backend via Set-Cookie header
+
+    navigate(
+      effectiveUserType === "customer" ? "/user-dashboard" : "/mess-dashboard"
+    );
+  } catch (err) {
+    console.error(err);
+    setError(err.response?.data?.message || "Signup failed");
+  } finally {
+    setLoading(false);
+  }
+};
 
   return (
     <div className="flex-grow flex items-center justify-center py-16 px-4">

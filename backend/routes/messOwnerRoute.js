@@ -16,13 +16,26 @@ app.use(express.json());
 messOwnerRouter.post("/signup", async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
-
+    console.log("Received signup request:", req.body);
     // Check if email already exists
     const existingOwner = await messOwnerModel.findOne({ email });
     if (existingOwner) {
       return res.status(400).json({ message: "Email already in use" });
     }
-    messOwnerModel.create({ name, email, password, phone });
+    const newUser = await messOwnerModel.create({ name, email, password, phone });
+
+const token = jwt.sign(
+  { userId: newUser._id, email: newUser.email },
+  process.env.MESS_JWT_SECRET,
+  { expiresIn: "1d" }
+);
+    console.log("Generated token:", token);
+    res.cookie("messToken", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // Secure in production (HTTPS)
+      sameSite: "strict",
+      maxAge: 24 * 60 * 60 * 1000, // 1 day
+    });
     res.status(201).json({ message: "Signup successful" });
   } catch (error) {
     res.status(500).json({ message: "Server error", error: error.message });

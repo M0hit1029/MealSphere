@@ -21,6 +21,15 @@ userRouter.post('/signup', async(req,res)=>{
             return res.status(400).json({message:"User already exists"});
         }
         const user = await userModel.create({name,email,password,phone});
+        const token = jwt.sign({id:user._id},process.env.USER_JWT_SECRET);
+
+        res.cookie("userToken",token,{
+            httpOnly:true,
+            secure:process.env.NODE_ENV === 'production',
+            sameSite:'lax',
+            maxAge:24*60*60*1000
+        })
+
         res.json({message:"User created successfully"});
     }
     catch(error){
