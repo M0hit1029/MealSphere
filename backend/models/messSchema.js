@@ -10,7 +10,7 @@ const messSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     address: { type: String, required: true },
-
+    image: {type:String,default:"https://res.cloudinary.com/dz1qj3x7h/image/upload/v1735681234/MealSphere/messDefaultImage.png"},
     liveLocation: {
       type: { type: String, enum: ['Point'], default: 'Point' },
       coordinates: { type: [Number], required: true }, // [longitude, latitude]

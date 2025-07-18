@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Navbar from "../components/UserDashboardNavbar";
-import { Clock, MapPin, Star, Calendar, Utensils } from "lucide-react";
+import { Clock, MapPin, Star, Calendar, Utensils, Hourglass } from "lucide-react"; // Added Hourglass icon
 import axios from "axios";
 
 const MessCard = ({ mess, onMonthlyBooking, onDailyReservation, isReservationAllowed, reservedMesses }) => {
@@ -178,6 +178,7 @@ function UserDashboard() {
     day: true,
     night: true,
   });
+  const [showAllMesses, setShowAllMesses] = useState(false);
 
   const checkReservationTime = () => {
     const now = new Date();
@@ -218,10 +219,18 @@ function UserDashboard() {
   const fetchMesses = async (lat, lng) => {
     try {
       setLoading(true);
-      const response = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/mess/get-all-mess?lat=18.46236506&lng=73.85346602`,
-        { withCredentials: true }
-      );
+      let response;
+      if (showAllMesses) {
+        response = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/mess/get-all-mess`,
+          { withCredentials: true }
+        );
+      } else {
+        response = await axios.get(
+          `${import.meta.env.VITE_BASE_URL}/mess/get-mess-by-latlong?lat=${lat}&lng=${lng}`,
+          { withCredentials: true }
+        );
+      }
       setMessData(response.data.messes);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to fetch messes.");
@@ -251,6 +260,19 @@ function UserDashboard() {
       setEnrolledMess(response.data.userMess);
     } catch (err) {
       setEnrollmentError(err.response?.data?.message || "Failed to fetch enrolled mess.");
+      // Store userMess even if the request is pending
+      if (err.response?.data?.message === "Request Not accepted yet" && err.response?.data?.userMess) {
+        setEnrolledMess(err.response.data.userMess);
+      }
+    }
+  };
+
+  const handleToggleMessView = () => {
+    setShowAllMesses((prev) => !prev);
+    if (location.lat && location.lng) {
+      fetchMesses(location.lat, location.lng);
+    } else {
+      setError("Location not available. Please enable geolocation to fetch messes.");
     }
   };
 
@@ -364,14 +386,33 @@ function UserDashboard() {
               <div className="spinner mx-auto mb-4"></div>
               <p className="text-gray-600">Loading enrolled mess...</p>
             </div>
+          ) : enrollmentError === "Request Not accepted yet" && enrolledMess ? (
+            // New card for pending enrollment request
+            <div className="card p-6 bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200">
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                  <Hourglass className="w-8 h-8" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-gray-800 mb-1">
+                    {enrolledMess.messId?.name || "Pending Mess"}
+                  </h3>
+                  <p className="text-gray-600 mb-2 flex items-center gap-1">
+                    <MapPin className="w-4 h-4" />
+                    {enrolledMess.messId?.address || "No address available"}
+                  </p>
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-yellow-100 text-yellow-800">
+                    Enrollment Pending
+                  </span>
+                </div>
+              </div>
+            </div>
           ) : enrollmentError ? (
             <div className="card p-6 text-center">
               <div className="text-6xl mb-4">🏠</div>
               <p className="text-gray-600 text-lg">
                 {enrollmentError === "User is not enrolled in any mess"
                   ? "You are not enrolled in any mess yet."
-                  : enrollmentError === "Request Not accepted yet"
-                  ? "Your enrollment request is pending approval."
                   : enrollmentError}
               </p>
             </div>
@@ -456,7 +497,7 @@ function UserDashboard() {
           )}
         </div>
 
-        {/* Search and Sort */}
+        {/* Search, Sort, and Toggle Mess View */}
         <div className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 animate-slideIn animate-delay-300">
           <div className="relative w-full md:w-1/2">
             <input
@@ -485,6 +526,16 @@ function UserDashboard() {
                 {option === "Price ascending" ? "Price ↑" : "Price ↓"}
               </button>
             ))}
+            <button
+              className={`px-6 py-3 rounded-full font-medium transition-all duration-300 ${
+                showAllMesses
+                  ? "bg-gradient-to-r from-blue-500 to-purple-500 text-white shadow-lg"
+                  : "bg-white/80 text-gray-700 hover:bg-white shadow-md hover:shadow-lg"
+              }`}
+              onClick={handleToggleMessView}
+            >
+              {showAllMesses ? "Show Nearby Messes" : "Show All Messes"}
+            </button>
           </div>
         </div>
 
@@ -541,8 +592,14 @@ function UserDashboard() {
               ) : (
                 <div className="col-span-full card p-12 text-center">
                   <div className="text-6xl mb-4 animate-bounce">🔍</div>
-                  <p className="text-gray-600 text-xl">No messes found within 5km.</p>
-                  <p className="text-gray-500 mt-2">Try adjusting your search or check back later.</p>
+                  <p className="text-gray-600 text-xl">
+                    {showAllMesses ? "No messes found." : "No messes found within 5km."}
+                  </p>
+                  <p className="text-gray-500 mt-2">
+                    {showAllMesses
+                      ? "Try adjusting your search or check back later."
+                      : "Try adjusting your search or switch to view all messes."}
+                  </p>
                 </div>
               )}
             </div>

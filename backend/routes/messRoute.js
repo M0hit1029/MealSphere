@@ -4,32 +4,47 @@ const enrollmentSchema = require("../models/enrollmentSchema")
 const authenticateOwner = require("../middlewares/messOwnerAuth"); // Middleware to verify token
 const authenticateUser = require("../middlewares/userAuth"); // User authentication middleware
 const messRouter = express.Router();
+const multer = require("multer");
+const path = require("path");
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, "uploads/mess-images"); // You can customize the folder
+  },
+  filename: function (req, file, cb) {
+    const uniqueName = Date.now() + "-" + Math.round(Math.random() * 1e9) + path.extname(file.originalname);
+    cb(null, uniqueName);
+  },
+});
 
-messRouter.post("/register", authenticateOwner, async (req, res) => {
+const upload = multer({ storage });
+
+messRouter.post("/register", authenticateOwner, upload.single('image'), async (req, res) => {
   try {
     const { name, address, liveLocation } = req.body;
 
-    if (!name || !address || !liveLocation?.coordinates) {
+    if (!name || !address || !liveLocation) {
       return res.status(400).json({ message: "All fields are required" });
     }
+
+    const imageUrl = req.file ? `/uploads/mess-images/${req.file.filename}` : null;
 
     const newMess = new messModel({
       name,
       address,
-      liveLocation,
+      liveLocation: JSON.parse(liveLocation), // Assuming frontend sends it as stringified JSON
       messOwnerId: req.messOwnerId,
+      image: imageUrl,
     });
 
     await newMess.save();
 
-    res
-      .status(201)
-      .json({ message: "Mess registered successfully", mess: newMess });
+    res.status(201).json({ message: "Mess registered successfully", mess: newMess });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
+
 
 messRouter.get("/owner/messes", authenticateOwner, async (req, res) => {
   try {
@@ -79,6 +94,15 @@ messRouter.get("/nearby", authenticateUser, async (req, res) => {
 // Get all messes with wider radius (5km)
 messRouter.get("/get-all-mess", authenticateUser, async (req, res) => {
   try {
+    const nearbyMesses = await messModel.find();
+    res.status(200).json({ messes: nearbyMesses });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+messRouter.get("/get-mess-by-latlong",authenticateUser,async (req,res)=>{
+  try {
     const { lat, lng } = req.query;
     if (!lat || !lng) {
       return res
@@ -103,19 +127,24 @@ messRouter.get("/get-all-mess", authenticateUser, async (req, res) => {
     console.error(error);
     res.status(500).json({ message: "Server error", error: error.message });
   }
-});
+})
 
 messRouter.get("/get-enrolled-mess", authenticateUser, async (req, res) => {
   const userId = req.userId;
-
-  const userMess = await enrollmentSchema.findOne({ userId }).populate("messId");
-  if (!userMess) {
-    return res.status(404).json({ message: "User is not enrolled in any mess" });
+  console.log("User ID:", userId);
+  try {
+    const userMess = await enrollmentSchema.findOne({ userId }).populate("messId");
+    if (!userMess) {
+      return res.status(404).json({ message: "User is not enrolled in any mess" });
+    }
+    if (!userMess.isAccepted) {
+      return res.status(400).json({ message: "Request Not accepted yet", userMess });
+    }
+    return res.status(200).json({ userMess });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error", error: error.message });
   }
-  if(!userMess.isAccepted){
-    return res.status(400).json({ message: "Request Not accepted yet" });
-  }
-  return res.status(200).json({ userMess });
 });
 
 messRouter.get("/:messId", async (req, res) => {
