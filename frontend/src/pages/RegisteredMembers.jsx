@@ -166,7 +166,7 @@ const RegisteredMembers = () => {
               )}
             </div>
           </div>
-        )}
+        )}  
       </div>
     </div>
   );
