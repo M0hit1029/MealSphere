@@ -32,8 +32,8 @@ const token = jwt.sign(
     console.log("Generated token:", token);
     res.cookie("messToken", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Secure in production (HTTPS)
-      sameSite: "strict",
+      secure: true, // Secure in production (HTTPS)
+      sameSite: "None",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
     res.status(201).json({ message: "Signup successful" });
@@ -67,8 +67,8 @@ messOwnerRouter.post("/login", async (req, res) => {
 
     res.cookie("messToken", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production", // Secure in production (HTTPS)
-      sameSite: "strict",
+      secure: true, // Secure in production (HTTPS)
+      sameSite: "None",
       maxAge: 24 * 60 * 60 * 1000, // 1 day
     });
 
