@@ -4,7 +4,7 @@ import { Clock, MapPin, Star, Calendar, Utensils, Hourglass } from "lucide-react
 import axios from "axios";
 
 const MessCard = ({ mess, onMonthlyBooking, onDailyReservation, isReservationAllowed, reservedMesses }) => {
-  const { name, menu, address, _id } = mess;
+  const { name, menu, address, _id, image } = mess;
   const [isHovered, setIsHovered] = useState(false);
 
   const dayDishes = menu?.dayMeal?.dishes || [];
@@ -32,7 +32,7 @@ const MessCard = ({ mess, onMonthlyBooking, onDailyReservation, isReservationAll
       {/* Image with Overlay */}
       <div className="relative overflow-hidden rounded-t-xl">
         <img
-          src="https://plus.unsplash.com/premium_photo-1669742928112-19364a33b530?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
+          src={image}
           alt={name}
           className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110"
         />

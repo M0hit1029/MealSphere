@@ -9,6 +9,7 @@ const Card = ({
   onViewDetails,
   onViewMembers,
   className,
+  image
 }) => {
   // Convert liveLocation object to string if it's an object
   const displayLocation = liveLocation?.coordinates
@@ -20,7 +21,7 @@ const Card = ({
       className={`bg-white rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 ${className}`}
     >
       <img
-        src="https://placehold.co/300x150?text=Mess+Image"
+        src={image}
         alt={name}
         className="w-full h-40 object-cover"
       />
