@@ -50,7 +50,7 @@ const MessDashboardNavbar = () => {
     >
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
         {/* Logo with Enhanced Animation */}
-        <div className="relative group cursor-pointer">
+        <div className="relative group">
           <div className="absolute -inset-2 bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-300 animate-pulse"></div>
           <div className="relative text-3xl font-extrabold tracking-wide">
             <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent drop-shadow-lg animate-glow">
@@ -59,19 +59,12 @@ const MessDashboardNavbar = () => {
           </div>
           <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-400 rounded-full animate-ping"></div>
           <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full"></div>
-          <div className="absolute -bottom-1 -left-1 text-xs font-bold text-orange-600">OWNER</div>
         </div>
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-6">
-          <NavButton icon={Home} href="#home">
-            Dashboard
-          </NavButton>
-          <NavButton icon={Settings} href="#settings">
-            Manage
-          </NavButton>
-          <NavButton icon={MessageCircle} href="#feedback">
-            Feedback
+          <NavButton icon={Home} href="/">
+            Home
           </NavButton>
           
           <button
@@ -108,16 +101,10 @@ const MessDashboardNavbar = () => {
       >
         <div className="bg-white/95 backdrop-blur-lg shadow-2xl border-t border-gray-200/50">
           <div className="flex flex-col p-6 space-y-4">
-            <MobileNavLink icon={Home} href="#home" onClick={() => setIsMenuOpen(false)}>
-              Dashboard
+            <MobileNavLink icon={Home} href="/" onClick={() => setIsMenuOpen(false)}>
+              Home
             </MobileNavLink>
-            <MobileNavLink icon={Settings} href="#settings" onClick={() => setIsMenuOpen(false)}>
-              Manage
-            </MobileNavLink>
-            <MobileNavLink icon={MessageCircle} href="#feedback" onClick={() => setIsMenuOpen(false)}>
-              Feedback
-            </MobileNavLink>
-            
+      
             <button
               onClick={() => {
                 handleLogout();

@@ -5,6 +5,7 @@ const cookieParser = require('cookie-parser');
 const userRouter = express.Router();
 const userModel = require('../models/userSchema');
 const reservationModel = require('../models/reservationSchema');
+const enrollmentSchema = require('../models/enrollmentSchema');
 const dotenv = require('dotenv');
 const reservationAuth = require('../middlewares/reservationAuth');
 const userAuth = require('../middlewares/userAuth');
@@ -90,7 +91,7 @@ userRouter.get('/auth/me', async (req,res)=>{
 
 userRouter.post(
   '/reserve',
-  [userAuth,reservationAuth],
+  [userAuth, reservationAuth],
   async (req, res) => {
     try {
       const { messId, mealType } = req.body;
@@ -100,14 +101,10 @@ userRouter.post(
       }
 
       const user = await userModel.findById(req.userId);
-      if (!user) {
-        return res.status(404).json({ message: 'User not found' });
-      }
+      if (!user) return res.status(404).json({ message: 'User not found' });
 
       const mess = await messModel.findById(messId);
-      if(!mess){
-        res.json({message:"Mess not found"});
-      }
+      if (!mess) return res.status(404).json({ message: 'Mess not found' });
 
       if (user.role !== 'daily') {
         return res.status(403).json({ message: 'Only daily users can reserve a mess' });
@@ -117,20 +114,57 @@ userRouter.post(
       const today = new Date();
       today.setHours(0, 0, 0, 0);
 
-      if (mealType === 'day' && now.getHours() >= 9) {
-        return res.status(403).json({ message: 'Day meal reservations must be made before 9 AM' });
+      const enrolled = await enrollmentSchema.findOne({ userId: req.userId, isAccepted: true });
+      if (enrolled && enrolled.messId.toString() !== messId) {
+        // Check if already booked in enrolled mess
+        const existing = await reservationModel.findOne({
+          userId: req.userId,
+          messId: enrolled.messId,
+          date: today,
+        });
+
+        if (existing && existing.mealType === mealType) {
+          return res.status(400).json({
+            message: `You already have a ${mealType} reservation in your enrolled mess`,
+          });
+        }
+
+        // Update absentee mess counts
+        const absenteeMess = await messModel.findById(enrolled.messId);
+        if (mealType === 'day') {
+          absenteeMess.absentTodayDay = (absenteeMess.absentTodayDay || 0) + 1;
+        } else {
+          absenteeMess.absentTodayNight = (absenteeMess.absentTodayNight || 0) + 1;
+        }
+        await absenteeMess.save();
+
+        // Update absentee in enrollment.attendance
+        const attendanceToday = enrolled.attendance.find(
+          (a) => new Date(a.date).toDateString() === today.toDateString()
+        );
+
+        if (attendanceToday) {
+          if (mealType === 'day') attendanceToday.attendedDay = false;
+          else attendanceToday.attendedNight = false;
+        } else {
+          enrolled.attendance.push({
+            date: today,
+            attendedDay: mealType === 'day' ? false : null,
+            attendedNight: mealType === 'night' ? false : null,
+          });
+        }
+
+        await enrolled.save();
       }
-      if (mealType === 'night' && (now.getHours() >= 18 || now.getHours() < 0)) {
-        return res.status(403).json({ message: 'Night meal reservations must be made before 6 PM' });
-      }
-      if(mealType === 'day'){
+
+      // Reserve current mess
+      if (mealType === 'day') {
         mess.attendingTodayDay += 1;
-      }
-      if(mealType === 'night'){
-        console.log("Mess night meal reserved");
+      } else {
         mess.attendingTodayNight += 1;
       }
       await mess.save();
+
       const reservation = await reservationModel.create({
         userId: req.userId,
         messId,
@@ -142,12 +176,13 @@ userRouter.post(
         message: 'Mess reserved successfully',
         reservation,
       });
+
     } catch (error) {
       console.error('Error reserving mess:', error);
       res.status(500).json({ message: 'Server error', error: error.message });
     }
   }
-);
+);  
 
 // Fetch today's reservations
 userRouter.get(

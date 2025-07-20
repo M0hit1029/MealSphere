@@ -1,4 +1,5 @@
 import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const Card = ({
   name,
@@ -9,19 +10,24 @@ const Card = ({
   onViewDetails,
   onViewMembers,
   className,
-  image
+  image,
+  _id, // Added _id prop for navigation
 }) => {
-  // Convert liveLocation object to string if it's an object
+  const navigate = useNavigate();
+  const baseURL = import.meta.env.VITE_BASE_URL || "http://localhost:3000";
+  const imageURL = image?.startsWith("/uploads")
+    ? `${baseURL}${image}`
+    : image || "https://res.cloudinary.com/dz1qj3x7h/image/upload/v1735681234/MealSphere/messDefaultImage.png";
+
   const displayLocation = liveLocation?.coordinates
     ? `Lat: ${liveLocation.coordinates[1]}, Lng: ${liveLocation.coordinates[0]}`
     : liveLocation || "Not provided";
-
   return (
     <div
       className={`bg-white rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 ${className}`}
     >
       <img
-        src={image}
+        src={imageURL}
         alt={name}
         className="w-full h-40 object-cover"
       />
@@ -45,6 +51,12 @@ const Card = ({
             className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
           >
             View Members
+          </button>
+          <button
+            onClick={() => navigate(`/mess/${_id}/attendance`)}
+            className="flex-1 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
+          >
+            View Attendance
           </button>
           <button
             onClick={onDelete}

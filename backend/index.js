@@ -6,12 +6,13 @@ const cookieParser = require('cookie-parser');
 const userRouter = require('./routes/userRoute');
 const messOwnerRouter = require('./routes/messOwnerRoute');
 const messRouter = require('./routes/messRoute');
+const path = require('path');
 require('./cron/removeOldMembers'); // ✅ Cron job will auto start
 
-app.use(cors({ origin: "https://meal-sphere-psi.vercel.app", credentials: true }));
+app.use(cors({ origin: ["https://meal-sphere-psi.vercel.app", "http://localhost:5173"], credentials: true }));
 app.use(express.json());
 app.use(cookieParser())
-app.use("/uploads", express.static("uploads"));
+app.use('/api/v1/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/v1/user', userRouter);
 app.use('/api/v1/messOwner', messOwnerRouter);
 app.use('/api/v1/mess', messRouter);

@@ -184,6 +184,7 @@ const MessRegistrationPage = () => {
     return messData.map((mess) => (
       <Card
         key={mess._id}
+        _id={mess._id}  
         name={mess.name}
         address={mess.address}
         liveLocation={mess.liveLocation}
