@@ -70,12 +70,14 @@ function Attendance() {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex flex-col p-6">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex flex-col p-4 sm:p-6">
       <Navbar />
-      <h1 className="text-3xl font-bold text-gradient mb-8 flex items-center gap-2">
+      <div className="mt-16 sm:mt-20">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gradient mb-6 sm:mb-8 flex items-center gap-2">
         <Users className="w-8 h-8 text-blue-500" />
         Today's Attendance
       </h1>
+      </div>
 
       {loading ? (
         <div className="card p-8 text-center">

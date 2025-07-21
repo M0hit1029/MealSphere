@@ -437,18 +437,18 @@ function UserDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex flex-col">
       <Navbar />
-      <div className="flex flex-1 flex-col mt-20 p-6">
-        <div className="mb-6 animate-slideIn">
+      <div className="flex flex-1 flex-col mt-20 p-4 sm:p-6">
+        <div className="mb-4 sm:mb-6 animate-slideIn">
           <div className="bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200 rounded-xl p-4 flex items-center gap-3">
             <Clock className="w-5 h-5 text-amber-600" />
-            <div className="text-amber-800">
+            <div className="text-amber-800 text-sm sm:text-base">
               <span className="font-semibold">Reservation Times:</span>
-              <span className="ml-2">Lunch before 11 AM • Dinner before 7 PM</span>
+              <span className="ml-2 block sm:inline">Lunch before 11 AM • Dinner before 7 PM</span>
             </div>
           </div>
         </div>
-        <div className="mb-8 animate-fadeIn">
-          <h2 className="text-3xl font-bold text-gradient mb-6 flex items-center gap-2">
+        <div className="mb-6 sm:mb-8 animate-fadeIn">
+          <h2 className="text-2xl sm:text-3xl font-bold text-gradient mb-4 sm:mb-6 flex items-center gap-2">
             <Star className="w-8 h-8 text-yellow-500" />
             Your Enrolled Mess
           </h2>

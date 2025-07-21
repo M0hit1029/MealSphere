@@ -199,24 +199,24 @@ const MessRegistrationPage = () => {
   };
 
   return (
-    <div className="flex flex-col p-5 min-h-screen bg-gradient-to-br from-blue-50 via-indigo-100 to-purple-50">
+    <div className="flex flex-col p-4 sm:p-5 min-h-screen bg-gradient-to-br from-blue-50 via-indigo-100 to-purple-50">
       <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22 viewBox=%220 0 100 100%22%3E%3Cg fill=%22%239C92AC%22 fill-opacity=%220.1%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2250%22/%3E%3C/g%3E%3C/svg%3E')] opacity-30"></div>
 
       <Navbar />
 
-      <div className="container mx-auto px-4 py-8 mt-7 relative z-10">
-        <div className="bg-white rounded-xl shadow-2xl p-6 mb-6 mt-4 relative z-20 animate-slideIn">
+      <div className="container mx-auto px-4 py-6 sm:py-8 mt-16 sm:mt-20 relative z-10">
+        <div className="bg-white rounded-xl shadow-2xl p-4 sm:p-6 mb-4 sm:mb-6 mt-2 sm:mt-4 relative z-20 animate-slideIn">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center">
               <span className="mr-2">🍽️</span> Your Registered Messes
             </h2>
             <button
               onClick={() => navigate("./add-mess")}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300 flex items-center animate-pulse-slow"
+              className="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300 flex items-center animate-pulse-slow text-sm sm:text-base"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 mr-2"
+                className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2"
                 viewBox="0 0 20 20"
                 fill="currentColor"
               >
@@ -226,7 +226,8 @@ const MessRegistrationPage = () => {
                   clipRule="evenodd"
                 />
               </svg>
-              Add New Mess
+              <span className="hidden sm:inline">Add New Mess</span>
+              <span className="sm:hidden">Add Mess</span>
             </button>
           </div>
         </div>

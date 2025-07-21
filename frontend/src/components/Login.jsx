@@ -25,7 +25,9 @@ function LoginSignupPage() {
       {/* Content */}
       <div className="relative flex flex-col min-h-screen">
         <Navbar />
-        <AuthSection userType={userType} navigate={navigate} />
+        <div className="mt-16 sm:mt-20">
+          <AuthSection userType={userType} navigate={navigate} />
+        </div>
       </div>
     </div>
   );
@@ -156,21 +158,21 @@ const handleSignup = async (e) => {
 };
 
   return (
-    <div className="flex-grow flex items-center justify-center py-16 px-4">
+    <div className="flex-grow flex items-center justify-center py-8 sm:py-16 px-4">
       <div
-        className="bg-[#FFFFFF] p-6 rounded-xl shadow-lg w-full max-w-sm mx-auto relative border border-white/20 "
+        className="bg-[#FFFFFF] p-4 sm:p-6 rounded-xl shadow-lg w-full max-w-sm mx-auto relative border border-white/20"
         style={{
           backdropFilter: "blur(10px)", // Increased blur for a stronger effect
           backgroundColor: "rgba(255, 255, 255, 0.1)", // Adjusted transparency to match the previous effect
         }}
       >
-        <h2 className="text-3xl font-extrabold text-[#FFFFFF] mb-6 text-center">
+        <h2 className="text-2xl sm:text-3xl font-extrabold text-[#FFFFFF] mb-4 sm:mb-6 text-center">
           {effectiveUserType === "customer" ? "Customer" : "Mess Owner"}
         </h2>
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center mb-4 sm:mb-6">
           <button
             onClick={() => setMode("login")}
-            className={`px-3 py-1 rounded-l-lg text-sm ${
+            className={`px-3 py-1 rounded-l-lg text-xs sm:text-sm ${
               mode === "login"
                 ? "bg-amber-600 text-[#FFFFFF]"
                 : "bg-[#E5E7EB] text-amber-600"
@@ -180,7 +182,7 @@ const handleSignup = async (e) => {
           </button>
           <button
             onClick={() => setMode("signup")}
-            className={`px-3 py-1 rounded-r-lg text-sm ${
+            className={`px-3 py-1 rounded-r-lg text-xs sm:text-sm ${
               mode === "signup"
                 ? "bg-amber-600 text-[#FFFFFF]"
                 : "bg-[#E5E7EB] text-amber-600"
@@ -191,7 +193,7 @@ const handleSignup = async (e) => {
         </div>
 
         {error && (
-          <div className="text-red-500 text-sm text-center mb-4">{error}</div>
+          <div className="text-red-500 text-xs sm:text-sm text-center mb-4">{error}</div>
         )}
 
         {mode === "login" ? (

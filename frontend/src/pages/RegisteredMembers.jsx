@@ -84,10 +84,10 @@ const RegisteredMembers = () => {
   };
 
   return (
-    <div className="flex flex-col p-5 min-h-screen bg-gradient-to-br from-blue-50 via-indigo-100 to-purple-50">
+    <div className="flex flex-col p-4 sm:p-5 min-h-screen bg-gradient-to-br from-blue-50 via-indigo-100 to-purple-50">
       <Navbar />
-      <div className="container mx-auto px-4 py-8 mt-7">
-        <h2 className="text-2xl font-bold text-gray-800 mb-6">Mess Members</h2>
+      <div className="container mx-auto px-4 py-6 sm:py-8 mt-16 sm:mt-20">
+        <h2 className="text-xl sm:text-2xl font-bold text-gray-800 mb-4 sm:mb-6">Mess Members</h2>
 
         {success && (
           <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-lg">
