@@ -35,7 +35,7 @@ function HeroSection() {
   }, []);
 
   return (
-    <div className="relative min-h-screen flex items-center justify-center overflow-hidden">
+    <div id="home" className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Background Image */}
       <div className="absolute inset-0">
         <img
@@ -51,33 +51,34 @@ function HeroSection() {
         <div className={`transition-all duration-1000 ease-out ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}>
-          <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-tight">
             Streamline Your
             <span className="block bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent">
               Mess Management
             </span>
           </h1>
           
-          <p className="text-xl md:text-2xl text-gray-200 mb-12 max-w-3xl mx-auto leading-relaxed">
+          <p className="text-lg sm:text-xl md:text-2xl text-gray-200 mb-8 sm:mb-12 max-w-3xl mx-auto leading-relaxed px-4">
             Connect with local messes, book meals in advance, and enjoy hassle-free dining with our comprehensive management platform.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
             <Link to="/signup">
-              <button className="bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold px-8 py-4 rounded-lg shadow-lg hover:shadow-xl hover:from-amber-600 hover:to-orange-700 transition-all duration-300 text-lg">
+              <button className="bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold px-6 sm:px-8 py-3 sm:py-4 rounded-lg shadow-lg hover:shadow-xl hover:from-amber-600 hover:to-orange-700 transition-all duration-300 text-base sm:text-lg w-full sm:w-auto">
                 Get Started Today
               </button>
             </Link>
-            <button className="border-2 border-white/30 text-white font-semibold px-8 py-4 rounded-lg hover:bg-white/10 hover:border-white/50 transition-all duration-300 text-lg backdrop-blur-sm">
+            <button 
+              onClick={() => {
+                const element = document.getElementById('about-section');
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }}
+              className="border-2 border-white/30 text-white font-semibold px-6 sm:px-8 py-3 sm:py-4 rounded-lg hover:bg-white/10 hover:border-white/50 transition-all duration-300 text-base sm:text-lg backdrop-blur-sm w-full sm:w-auto"
+            >
               Learn More
             </button>
-          </div>
-        </div>
-
-        {/* Scroll Indicator */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
-          <div className="w-6 h-10 border-2 border-white/40 rounded-full flex justify-center">
-            <div className="w-1 h-3 bg-white/60 rounded-full mt-2 animate-bounce"></div>
           </div>
         </div>
       </div>
@@ -106,38 +107,38 @@ function AboutUs() {
 
   return (
     <section id="about-section" className="py-20 bg-gray-50">
-      <div className="max-w-6xl mx-auto px-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className={`transition-all duration-800 ease-out ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}>
           <div className="text-center mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-6">
               About MealSphere
             </h2>
             <div className="w-24 h-1 bg-gradient-to-r from-amber-500 to-orange-500 mx-auto mb-8"></div>
           </div>
           
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
             <div>
-              <p className="text-lg text-gray-700 leading-relaxed mb-6">
+              <p className="text-base sm:text-lg text-gray-700 leading-relaxed mb-6">
                 MealSphere revolutionizes mess management by connecting students, working professionals, and mess owners through an intuitive digital platform. We understand the challenges of meal planning and aim to make dining convenient and accessible.
               </p>
-              <p className="text-lg text-gray-700 leading-relaxed mb-8">
+              <p className="text-base sm:text-lg text-gray-700 leading-relaxed mb-8">
                 Our platform streamlines the entire process from menu discovery to meal booking, while helping reduce food waste through better planning and coordination.
               </p>
               
-              <div className="grid grid-cols-3 gap-6 text-center">
+              <div className="grid grid-cols-3 gap-4 sm:gap-6 text-center">
                 <div className="p-4">
-                  <div className="text-3xl font-bold text-amber-600 mb-2">1000+</div>
-                  <div className="text-gray-600">Happy Users</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-amber-600 mb-2">1000+</div>
+                  <div className="text-sm sm:text-base text-gray-600">Happy Users</div>
                 </div>
                 <div className="p-4">
-                  <div className="text-3xl font-bold text-amber-600 mb-2">50+</div>
-                  <div className="text-gray-600">Partner Messes</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-amber-600 mb-2">50+</div>
+                  <div className="text-sm sm:text-base text-gray-600">Partner Messes</div>
                 </div>
                 <div className="p-4">
-                  <div className="text-3xl font-bold text-amber-600 mb-2">24/7</div>
-                  <div className="text-gray-600">Support</div>
+                  <div className="text-2xl sm:text-3xl font-bold text-amber-600 mb-2">24/7</div>
+                  <div className="text-sm sm:text-base text-gray-600">Support</div>
                 </div>
               </div>
             </div>
@@ -234,19 +235,19 @@ function Features() {
   };
 
   return (
-    <section className="py-20 bg-white">
-      <div className="max-w-6xl mx-auto px-6">
+    <section id="features" className="py-20 bg-white">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-6">
             Key Features
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-amber-500 to-orange-500 mx-auto mb-8"></div>
-          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto px-4">
             Discover how MealSphere makes mess management simple, efficient, and sustainable
           </p>
         </div>
         
-        <div className="grid md:grid-cols-3 gap-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {features.map((feature, index) => (
             <div
               key={index}
@@ -282,15 +283,15 @@ function Features() {
 function Reviews({ reviews = [] }) {
   return (
     <section className="py-20 bg-gray-50">
-      <div className="max-w-6xl mx-auto px-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-gray-900 mb-6">
             What Our Users Say
           </h2>
           <div className="w-24 h-1 bg-gradient-to-r from-amber-500 to-orange-500 mx-auto"></div>
         </div>
         
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {reviews.length > 0 ? (
             reviews.map((review, index) => (
               <div 
@@ -357,12 +358,12 @@ function ContactAndReviews({ allReviews, onAddReview }) {
   };
 
   return (
-    <section id="reviews" className="py-20 bg-white">
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="grid md:grid-cols-2 gap-12">
+    <section id="contact" className="py-20 bg-white">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="grid md:grid-cols-2 gap-8 md:gap-12">
           {/* Contact Us */}
           <div>
-            <h3 className="text-3xl font-bold text-gray-900 mb-8">Get In Touch</h3>
+            <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">Get In Touch</h3>
             <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100">
               <form onSubmit={handleContactSubmit} className="space-y-6">
                 <div>
@@ -407,7 +408,7 @@ function ContactAndReviews({ allReviews, onAddReview }) {
 
           {/* Write a Review */}
           <div>
-            <h3 className="text-3xl font-bold text-gray-900 mb-8">Share Your Experience</h3>
+            <h3 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6 sm:mb-8">Share Your Experience</h3>
             <div className="bg-gray-50 rounded-2xl p-8 border border-gray-100">
               <form onSubmit={handleReviewSubmit} className="space-y-6">
                 <div>
@@ -420,19 +421,19 @@ function ContactAndReviews({ allReviews, onAddReview }) {
                     required
                   ></textarea>
                 </div>
-                <div className="flex gap-4">
+                <div className="flex flex-col sm:flex-row gap-4">
                   <input
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     type="text"
-                    className="flex-1 p-4 bg-white border border-gray-200 rounded-lg focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all duration-300 outline-none"
+                    className="flex-1 p-4 bg-white border border-gray-200 rounded-lg focus:border-amber-500 focus:ring-2 focus:ring-amber-200 transition-all duration-300 outline-none w-full sm:w-auto"
                     placeholder="Your Name"
                     required
                   />
                   <button
                     type="submit"
                     disabled={isSubmitting}
-                    className="bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold px-8 py-4 rounded-lg hover:from-amber-600 hover:to-orange-700 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold px-6 sm:px-8 py-4 rounded-lg hover:from-amber-600 hover:to-orange-700 transition-all duration-300 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed w-full sm:w-auto"
                   >
                     {isSubmitting ? "Submitting..." : "Submit Review"}
                   </button>
@@ -451,13 +452,13 @@ function Footer() {
   
   return (
     <footer className="bg-gray-900 text-white py-16">
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="grid md:grid-cols-4 gap-8 mb-12">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           <div className="md:col-span-2">
-            <h3 className="text-3xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent mb-4">
+            <h3 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-amber-400 to-orange-500 bg-clip-text text-transparent mb-4">
               MealSphere
             </h3>
-            <p className="text-gray-400 leading-relaxed mb-6 max-w-md">
+            <p className="text-sm sm:text-base text-gray-400 leading-relaxed mb-6 max-w-md">
               Revolutionizing mess management through technology. Connect, book, and enjoy meals with ease while contributing to a sustainable future.
             </p>
             <div className="flex space-x-4">
@@ -474,17 +475,26 @@ function Footer() {
           </div>
           
           <div>
-            <h4 className="text-lg font-semibold mb-4">Quick Links</h4>
+            <h4 className="text-base sm:text-lg font-semibold mb-4">Quick Links</h4>
             <ul className="space-y-2 text-gray-400">
-              <li><a href="#about-section" className="hover:text-amber-400 transition-colors duration-300">About Us</a></li>
-              <li><a href="#features" className="hover:text-amber-400 transition-colors duration-300">Features</a></li>
-              <li><a href="#reviews" className="hover:text-amber-400 transition-colors duration-300">Reviews</a></li>
+              <li><button onClick={() => {
+                const element = document.getElementById('about-section');
+                if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }} className="hover:text-amber-400 transition-colors duration-300 text-left">About Us</button></li>
+              <li><button onClick={() => {
+                const element = document.getElementById('features');
+                if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }} className="hover:text-amber-400 transition-colors duration-300 text-left">Features</button></li>
+              <li><button onClick={() => {
+                const element = document.getElementById('contact');
+                if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }} className="hover:text-amber-400 transition-colors duration-300 text-left">Contact</button></li>
               <li><Link to="/signup" className="hover:text-amber-400 transition-colors duration-300">Get Started</Link></li>
             </ul>
           </div>
           
           <div>
-            <h4 className="text-lg font-semibold mb-4">Support</h4>
+            <h4 className="text-base sm:text-lg font-semibold mb-4">Support</h4>
             <ul className="space-y-2 text-gray-400">
               <li><a href="#" className="hover:text-amber-400 transition-colors duration-300">Help Center</a></li>
               <li><a href="#" className="hover:text-amber-400 transition-colors duration-300">Contact Us</a></li>
@@ -495,7 +505,7 @@ function Footer() {
         </div>
         
         <div className="border-t border-gray-800 pt-8 text-center">
-          <p className="text-gray-400">
+          <p className="text-sm sm:text-base text-gray-400">
             © {currentYear} MealSphere. All rights reserved. Made with ❤️ for better dining experiences.
           </p>
         </div>

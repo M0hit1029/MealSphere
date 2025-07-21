@@ -2,6 +2,16 @@ import React, { useState, useEffect } from "react";
 import { Menu, User, X } from "lucide-react";
 import { Link } from "react-router-dom";
 
+const scrollToSection = (sectionId) => {
+  const element = document.getElementById(sectionId);
+  if (element) {
+    element.scrollIntoView({ 
+      behavior: 'smooth',
+      block: 'start'
+    });
+  }
+};
+
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -43,10 +53,10 @@ const Navbar = () => {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-8">
-          <NavLink href="#home" isScrolled={isScrolled}>Home</NavLink>
-          <NavLink href="#about-section" isScrolled={isScrolled}>About</NavLink>
-          <NavLink href="#features" isScrolled={isScrolled}>Features</NavLink>
-          <NavLink href="#reviews" isScrolled={isScrolled}>Contact</NavLink>
+          <NavLink onClick={() => scrollToSection('home')} isScrolled={isScrolled}>Home</NavLink>
+          <NavLink onClick={() => scrollToSection('about-section')} isScrolled={isScrolled}>About</NavLink>
+          <NavLink onClick={() => scrollToSection('features')} isScrolled={isScrolled}>Features</NavLink>
+          <NavLink onClick={() => scrollToSection('contact')} isScrolled={isScrolled}>Contact</NavLink>
           
           <Link to="/signup">
             <button className="bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold py-2 px-6 rounded-lg shadow-lg hover:from-amber-600 hover:to-orange-700 hover:shadow-xl transition-all duration-300 flex items-center gap-2">
@@ -79,16 +89,16 @@ const Navbar = () => {
       >
         <div className="bg-white/95 backdrop-blur-lg shadow-xl border-t border-gray-200/50">
           <div className="flex flex-col p-6 space-y-4">
-            <MobileNavLink href="#home" onClick={() => setIsMenuOpen(false)}>
+            <MobileNavLink onClick={() => { scrollToSection('home'); setIsMenuOpen(false); }}>
               Home
             </MobileNavLink>
-            <MobileNavLink href="#about-section" onClick={() => setIsMenuOpen(false)}>
+            <MobileNavLink onClick={() => { scrollToSection('about-section'); setIsMenuOpen(false); }}>
               About
             </MobileNavLink>
-            <MobileNavLink href="#features" onClick={() => setIsMenuOpen(false)}>
+            <MobileNavLink onClick={() => { scrollToSection('features'); setIsMenuOpen(false); }}>
               Features
             </MobileNavLink>
-            <MobileNavLink href="#reviews" onClick={() => setIsMenuOpen(false)}>
+            <MobileNavLink onClick={() => { scrollToSection('contact'); setIsMenuOpen(false); }}>
               Contact
             </MobileNavLink>
             
@@ -105,14 +115,14 @@ const Navbar = () => {
   );
 };
 
-const NavLink = ({ href, children, isScrolled }) => (
-  <a
-    href={href}
+const NavLink = ({ onClick, children, isScrolled }) => (
+  <button
+    onClick={onClick}
     className={`relative font-medium transition-all duration-300 group ${
       isScrolled 
         ? 'text-gray-700 hover:text-amber-600' 
         : 'text-white/90 hover:text-amber-400'
-    }`}
+    } cursor-pointer`}
   >
     {children}
     <span className={`absolute -bottom-1 left-0 w-0 h-0.5 transition-all duration-300 group-hover:w-full ${
@@ -120,17 +130,16 @@ const NavLink = ({ href, children, isScrolled }) => (
         ? 'bg-amber-600' 
         : 'bg-amber-400'
     }`}></span>
-  </a>
+  </button>
 );
 
-const MobileNavLink = ({ href, children, onClick }) => (
-  <a
-    href={href}
+const MobileNavLink = ({ children, onClick }) => (
+  <button
     onClick={onClick}
-    className="text-gray-700 hover:text-amber-600 font-medium py-3 px-4 rounded-lg hover:bg-amber-50 transition-all duration-300"
+    className="text-gray-700 hover:text-amber-600 font-medium py-3 px-4 rounded-lg hover:bg-amber-50 transition-all duration-300 text-left w-full"
   >
     {children}
-  </a>
+  </button>
 );
 
 export default Navbar;
