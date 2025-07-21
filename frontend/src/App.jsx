@@ -12,6 +12,8 @@ const MessDashboard = lazy(() => import("./pages/MessDashboard"));
 const Trial = lazy(() => import("./components/Trial"));
 const AddMessPage = lazy(() => import("./pages/AddNewMess"));
 const RegisteredMembers = lazy(() => import("./pages/RegisteredMembers"));
+const Attendance = lazy(() => import("./pages/AttendencePage"));
+const UserAttendance = lazy(() => import("./pages/UserAttendance"));
 
 function App() {
   return (
@@ -28,6 +30,8 @@ function App() {
           <Route path="/mess-dashboard" element={<MessDashboard />} />
           <Route path="mess-dashboard/add-mess" element={<AddMessPage/>}/>
           <Route path="mess-dashboard/:messId/registered-members" element={<RegisteredMembers />} />
+          <Route path="mess-dashboard/:messId/attendance" element={<Attendance />} />
+          <Route path="mess-dashboard/:messId/user-attendance/:userId" element={<UserAttendance />} />
         </Route>
         <Route path="/trial" element={<Trial/>}></Route>
       </Routes>

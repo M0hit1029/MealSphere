@@ -53,7 +53,7 @@ const Card = ({
             View Members
           </button>
           <button
-            onClick={() => navigate(`/mess/${_id}/attendance`)}
+            onClick={() => navigate(`/mess-dashboard/${_id}/attendance`)}
             className="flex-1 bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors"
           >
             View Attendance

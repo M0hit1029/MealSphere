@@ -1,12 +1,11 @@
-// src/pages/MessMembersPage.jsx
 import React, { useState, useEffect } from "react";
-import { useParams} from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import Navbar from "../components/MessDashboardNavbar";
 
 const RegisteredMembers = () => {
   const { messId } = useParams();
-  console.log(messId);
+  const navigate = useNavigate();
   const [acceptedMembers, setAcceptedMembers] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -46,14 +45,15 @@ const RegisteredMembers = () => {
   const handleAccept = async (enrollmentId) => {
     try {
       setLoading(true);
-      alert("Do You want to accept this member?");
-      await axios.put(
-        `${import.meta.env.VITE_BASE_URL}/messOwner/enrollment/${enrollmentId}/accept`,
-        {},
-        { withCredentials: true }
-      );
-      setSuccess("Member accepted successfully");
-      await fetchMembers();
+      if (window.confirm("Do you want to accept this member?")) {
+        await axios.put(
+          `${import.meta.env.VITE_BASE_URL}/messOwner/enrollment/${enrollmentId}/accept`,
+          {},
+          { withCredentials: true }
+        );
+        setSuccess("Member accepted successfully");
+        await fetchMembers();
+      }
     } catch (err) {
       setError(err.response?.data?.message || "Failed to accept member");
     } finally {
@@ -64,17 +64,23 @@ const RegisteredMembers = () => {
   const handleReject = async (enrollmentId) => {
     try {
       setLoading(true);
-      await axios.delete(
-        `${import.meta.env.VITE_BASE_URL}/messOwner/enrollment/${enrollmentId}/reject?messId=${messId}`,
-        { withCredentials: true }
-      );      
-      setSuccess("Request rejected successfully");
-      await fetchMembers();
+      if (window.confirm("Do you want to reject this request?")) {
+        await axios.delete(
+          `${import.meta.env.VITE_BASE_URL}/messOwner/enrollment/${enrollmentId}/reject?messId=${messId}`,
+          { withCredentials: true }
+        );
+        setSuccess("Request rejected successfully");
+        await fetchMembers();
+      }
     } catch (err) {
       setError(err.response?.data?.message || "Failed to reject request");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleViewAttendance = (userId) => {
+    navigate(`/mess-dashboard/${messId}/user-attendance/${userId}`);
   };
 
   return (
@@ -96,7 +102,7 @@ const RegisteredMembers = () => {
 
         {loading ? (
           <div className="flex justify-center items-center p-12">
-            <div className="animate-spin h-10 w-10 text-blue-600"></div>
+            <div className="animate-spin h-10 w-10 border-4 border-blue-600 border-t-transparent rounded-full"></div>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -113,7 +119,12 @@ const RegisteredMembers = () => {
                       className="border p-4 rounded-lg flex justify-between items-center"
                     >
                       <div>
-                        <p className="font-medium">{member.userId.name}</p>
+                        <button
+                          onClick={() => handleViewAttendance(member.userId._id)}
+                          className="font-medium text-blue-600 hover:text-blue-800 transition-colors"
+                        >
+                          {member.userId.name}
+                        </button>
                         <p className="text-gray-500">{member.userId.email}</p>
                         <p className="text-sm text-gray-400">
                           Joined: {new Date(member.joinedAt).toLocaleDateString()}
@@ -166,7 +177,7 @@ const RegisteredMembers = () => {
               )}
             </div>
           </div>
-        )}  
+        )}
       </div>
     </div>
   );

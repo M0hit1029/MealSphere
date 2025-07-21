@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Menu, LogOut, Home, MessageCircle, Settings } from "lucide-react";
+import { Menu, LogOut, Home, MessageCircle, Settings,AppWindow } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -66,7 +66,9 @@ const MessDashboardNavbar = () => {
           <NavButton icon={Home} href="/">
             Home
           </NavButton>
-          
+          <NavButton icon={AppWindow} href="/mess-dashboard">
+            Dashboard
+          </NavButton>
           <button
             onClick={handleLogout}
             className="group relative overflow-hidden bg-gradient-to-r from-red-500 to-pink-500 text-white font-semibold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
@@ -104,7 +106,9 @@ const MessDashboardNavbar = () => {
             <MobileNavLink icon={Home} href="/" onClick={() => setIsMenuOpen(false)}>
               Home
             </MobileNavLink>
-      
+            <MobileNavLink icon={AppWindow} href="/mess-dashboard" onClick={() => setIsMenuOpen(false)}>
+              Dashboard
+            </MobileNavLink>
             <button
               onClick={() => {
                 handleLogout();

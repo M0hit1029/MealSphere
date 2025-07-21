@@ -1,5 +1,6 @@
 const express = require("express");
 const messModel = require("../models/messSchema"); // Mess Schema
+const userModel = require("../models/userSchema"); // User Schema
 const enrollmentSchema = require("../models/enrollmentSchema")
 const reservationSchema = require("../models/reservationSchema")
 const authenticateOwner = require("../middlewares/messOwnerAuth"); // Middleware to verify token
@@ -46,7 +47,6 @@ messRouter.post("/register", authenticateOwner, upload.single('image'), async (r
   }
 });
 
-
 messRouter.get("/owner/messes", authenticateOwner, async (req, res) => {
   try {
     const messes = await messModel.find({ messOwnerId: req.messOwnerId });
@@ -92,7 +92,6 @@ messRouter.get("/nearby", authenticateUser, async (req, res) => {
   }
 });
 
-// Get all messes with wider radius (5km)
 messRouter.get("/get-all-mess", authenticateUser, async (req, res) => {
   try {
     const nearbyMesses = await messModel.find();
@@ -103,6 +102,7 @@ messRouter.get("/get-all-mess", authenticateUser, async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
+
 messRouter.get("/get-mess-by-latlong",authenticateUser,async (req,res)=>{
   try {
     const { lat, lng } = req.query;
@@ -167,22 +167,6 @@ messRouter.get("/get-enrolled-mess", authenticateUser, async (req, res) => {
     res.status(500).json({ message: "Server error", error: error.message });
   }
 });
-
-
-// messRouter.get("/get-attendence-list/day",authenticateOwner,async(req,res)=>{
-//   try{
-//     const id = req.messId;
-//     const enrollements = await enrollmentSchema.find({ messId: id }).populate("userId"); 
-//     const reservations = await reservationSchema.find({ messId: id, mealType: "day" }).populate("userId");
-//     enrollements.forEach((enrollment) => {
-//       const userId = enrollment.userId;
-
-//     })
-//   }
-// })
-// messRouter.delete("/delete-enrollment", authenticateUser, async (req, res) => {
-//   const enrolled
-// })
 
 messRouter.get("/:messId", async (req, res) => {
   try {
@@ -275,8 +259,8 @@ messRouter.post('/attend/:messId/day', authenticateUser, async (req, res) => {
     const { messId } = req.params;
     const userId = req.userId;
 
-    const today = new Date();
-    const todayStart = new Date(today.setHours(0, 0, 0, 0));
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
 
     // Check if mess exists
     const mess = await messModel.findById(messId);
@@ -290,58 +274,52 @@ messRouter.post('/attend/:messId/day', authenticateUser, async (req, res) => {
       return res.status(403).json({ message: 'You are not a member of this mess' });
     }
 
-    // Prevent double booking in another mess for day
+    // Prevent booking in another mess for day
     const existingReservation = await reservationSchema.findOne({
       userId,
       messId: { $ne: messId },
       mealType: "day",
-      date: todayStart,
+      date: startOfDay,
     });
-    console.log(existingReservation, "existingReservation in day attendance");
+
     if (existingReservation) {
       return res.status(400).json({ message: 'Already reserved lunch in another mess today' });
     }
 
-    // Create or update today's reservation
+    // Find or create reservation
     let reservation = await reservationSchema.findOne({
       userId,
       messId,
-      date: todayStart
+      date: startOfDay,
     });
 
     if (reservation) {
-      if (reservation.reservedDay) {
+      if (reservation.mealType === 'day' || reservation.mealType === 'both') {
         return res.status(400).json({ message: 'Lunch already reserved for this mess' });
       }
-      reservation.reservedDay = true;
+      reservation.mealType = 'both'; // upgrade from 'night' to 'both'
     } else {
       reservation = new reservationSchema({
         userId,
         messId,
         mealType: "day",
-        date: todayStart,
-        reservedDay: true,
-        reservedNight: false
+        date: startOfDay,
       });
     }
 
-    // Increment mess day attendance
     mess.attendingTodayDay += 1;
-
-    // Save changes
     await reservation.save();
     await mess.save();
 
-    // Update enrollment attendance
     const existingAttendance = enrollment.attendance.find(entry =>
-      new Date(entry.date).toDateString() === todayStart.toDateString()
+      new Date(entry.date).toDateString() === startOfDay.toDateString()
     );
 
     if (existingAttendance) {
       existingAttendance.attendedDay = true;
     } else {
       enrollment.attendance.push({
-        date: todayStart,
+        date: startOfDay,
         attendedDay: true,
         attendedNight: false,
       });
@@ -349,7 +327,6 @@ messRouter.post('/attend/:messId/day', authenticateUser, async (req, res) => {
 
     await enrollment.save();
 
-    // Success response
     res.json({ message: 'Lunch reservation confirmed' });
 
   } catch (error) {
@@ -364,74 +341,67 @@ messRouter.post('/attend/:messId/night', authenticateUser, async (req, res) => {
     const { messId } = req.params;
     const userId = req.userId;
 
-    // Get today's date at 00:00:00
-    const today = new Date();
-    const todayStart = new Date(today.setHours(0, 0, 0, 0));
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
 
-    // Find the mess
+    // Check if mess exists
     const mess = await messModel.findById(messId);
     if (!mess) {
       return res.status(404).json({ message: 'Mess not found' });
     }
 
-    // Check if user is enrolled in this mess and is accepted
+    // Check if user is enrolled and accepted
     const enrollment = await enrollmentSchema.findOne({ userId, messId });
     if (!enrollment || !enrollment.isAccepted) {
       return res.status(403).json({ message: 'You are not a member of this mess' });
     }
 
-    // Check if user already reserved night in another mess today
+    // Prevent booking in another mess for night
     const existingReservation = await reservationSchema.findOne({
       userId,
       messId: { $ne: messId },
       mealType: "night",
-      date: todayStart,
+      date: startOfDay,
     });
 
     if (existingReservation) {
       return res.status(400).json({ message: 'Already reserved dinner in another mess today' });
     }
 
-    // Find or create reservation for this mess and today
+    // Find or create reservation
     let reservation = await reservationSchema.findOne({
       userId,
       messId,
-      date: todayStart
+      date: startOfDay,
     });
 
     if (reservation) {
-      if (reservation.reservedNight) {
+      if (reservation.mealType === 'night' || reservation.mealType === 'both') {
         return res.status(400).json({ message: 'Dinner already reserved for this mess' });
       }
-      reservation.reservedNight = true;
+      reservation.mealType = 'both'; // upgrade from 'day' to 'both'
     } else {
       reservation = new reservationSchema({
         userId,
         messId,
-        mealType:"night",
-        date: todayStart,
-        reservedDay: false,
-        reservedNight: true
+        mealType: "night",
+        date: startOfDay,
       });
     }
 
-    // Update mess attendance count
     mess.attendingTodayNight += 1;
-
-    // Save reservation and mess
     await reservation.save();
     await mess.save();
 
-    // Update attendance in enrollment schema
     const existingAttendance = enrollment.attendance.find(entry =>
-      new Date(entry.date).toDateString() === todayStart.toDateString()
+      new Date(entry.date).toDateString() === startOfDay.toDateString()
     );
 
     if (existingAttendance) {
       existingAttendance.attendedNight = true;
     } else {
       enrollment.attendance.push({
-        date: todayStart,
+        date: startOfDay,
         attendedDay: false,
         attendedNight: true,
       });
@@ -439,7 +409,6 @@ messRouter.post('/attend/:messId/night', authenticateUser, async (req, res) => {
 
     await enrollment.save();
 
-    // Final response
     res.json({ message: 'Dinner reservation confirmed' });
 
   } catch (error) {
@@ -448,6 +417,112 @@ messRouter.post('/attend/:messId/night', authenticateUser, async (req, res) => {
   }
 });
 
+
+
+messRouter.get('/:messId/today-attendance', authenticateOwner, async (req, res) => {
+  try {
+    const { messId } = req.params;
+    const today = new Date();
+    const todayStart = new Date(today.setHours(0, 0, 0, 0));
+
+    const mess = await messModel.findById(messId);
+    if (!mess) return res.status(404).json({ message: 'Mess not found' });
+
+    // Get all enrolled members
+    const enrolledMembers = await enrollmentSchema.find({ messId, isAccepted: true }).populate('userId');
+    const enrolledUserIds = enrolledMembers.map(e => e.userId._id.toString());
+
+    // Get today's reservations for this mess
+    const todaysReservations = await reservationSchema.find({
+      messId,
+      date: todayStart,
+    });
+    // Map userId to reservation info
+    const reservationMap = {};
+    todaysReservations.forEach(res => {
+      reservationMap[res.userId.toString()] = res;
+    });
+    // Enrolled with attendance info
+    const enrolledWithStatus = enrolledMembers.map(e => {
+      const res = reservationMap[e.userId._id.toString()];
+      return {
+        user: e.userId,
+        comingDay: res?.mealType === "day" || false,
+        comingNight: res?.mealType === "night" || false,
+      };
+    });
+
+    // Non-enrolled reservations
+    const nonEnrolledReservations = todaysReservations.filter(res =>
+      !enrolledUserIds.includes(res.userId.toString())
+    );
+
+    const nonEnrolledUserIds = nonEnrolledReservations.map(r => r.userId);
+    const nonEnrolledUsers = await userModel.find({ _id: { $in: nonEnrolledUserIds } });
+
+    // Attach attendance to non-enrolled
+    const nonEnrolledWithStatus = nonEnrolledUsers.map(user => {
+      const res = reservationMap[user._id.toString()];
+      console.log(res, "res in attendance");
+      return {
+        user,
+        comingDay: res?.mealType === "day" || false,
+        comingNight: res?.mealType === "night" || false,
+      };
+    });
+console.log(enrolledWithStatus, "enrolledWithStatus in attendance");
+console.log(nonEnrolledWithStatus, "nonEnrolledWithStatus in attendance");
+    res.status(200).json({
+      enrolledMembers: enrolledWithStatus,
+      nonEnrolledCustomers: nonEnrolledWithStatus,
+    });
+
+  } catch (error) {
+    console.error('Error fetching attendance:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+messRouter.get('/:messId/user-attendance/:userId', authenticateOwner, async (req, res) => {
+  try {
+    const { messId, userId } = req.params;
+
+    // Verify mess exists and ownership
+    const mess = await messModel.findById(messId);
+    if (!mess) return res.status(404).json({ message: 'Mess not found' });
+
+    if (mess.messOwnerId.toString() !== req.messOwnerId) {
+      return res.status(403).json({ message: 'Unauthorized' });
+    }
+
+    // Fetch user's enrollment record
+    const enrollment = await enrollmentSchema.findOne({ messId, userId });
+    if (!enrollment || !enrollment.isAccepted) {
+      return res.status(404).json({ message: 'User not enrolled in this mess' });
+    }
+
+    const attendanceData = enrollment.attendance || [];
+
+    const totalDays = attendanceData.length;
+    const presentDays = attendanceData.filter(d => d.attendedDay || d.attendedNight).length;
+    const absentDays = totalDays - presentDays;
+    console.log(attendanceData, "attendanceData in user attendance");
+    res.json({
+      totalDays,
+      presentDays,
+      absentDays,
+      records: attendanceData.map(d => ({
+        date: d.date,
+        attendedDay: d.attendedDay,
+        attendedNight: d.attendedNight
+      }))
+    });
+
+  } catch (error) {
+    console.error('Error getting attendance:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
 
 
 

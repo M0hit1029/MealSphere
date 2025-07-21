@@ -183,8 +183,8 @@ function UserDashboard() {
     const now = new Date();
     const currentHour = now.getHours();
     setIsReservationAllowed({
-      day: currentHour < 11, // Lunch reservations before 11 AM
-      night: currentHour < 19, // Dinner reservations before 7 PM
+      day: true, // Lunch reservations before 11 AM
+      night: true // Dinner reservations before 7 PM
     });
   };
 
@@ -221,6 +221,7 @@ function UserDashboard() {
         `${import.meta.env.VITE_BASE_URL}/user/reservations/today`,
         { withCredentials: true }
       );
+      console.log("Today's reservations:", response.data);
       setReservedMesses(response.data.reservations || []);
     } catch (err) {
       setError(err.response?.data?.message || "Failed to fetch reservations.");
@@ -322,7 +323,7 @@ function UserDashboard() {
       alert("Cannot cancel lunch reservation after 11 AM.");
       return;
     }
-    if (mealType === "night" && currentHour >= 19) {
+    if (mealType === "night" && currentHour >= 23) {
       alert("Cannot cancel dinner reservation after 7 PM.");
       return;
     }
@@ -390,6 +391,7 @@ function UserDashboard() {
   };
 
   const handleEnrolledMessReservation = async (messId, mealType) => {
+    console.log(`Handling reservation for enrolled mess: ${messId}, mealType: ${mealType}`);
     const messName = enrolledMess.messId?.name || "Unknown Mess";
     if (
       window.confirm(
@@ -624,16 +626,16 @@ function UserDashboard() {
                     </div>
                   </div>
                   <button
-                    onClick={() => handleCancelReservation(reservation._id, reservation.messName, reservation.mealType)}
+                    onClick={() => handleCancelReservation(reservation.reservationId, reservation.messName, reservation.mealType)}
                     className={`w-full btn-danger text-sm ${
                       (reservation.mealType === "day" && new Date().getHours() >= 11) ||
-                      (reservation.mealType === "night" && new Date().getHours() >= 19)
+                      (reservation.mealType === "night" && new Date().getHours() >= 23)
                         ? "opacity-50 cursor-not-allowed"
                         : ""
                     }`}
                     disabled={
                       (reservation.mealType === "day" && new Date().getHours() >= 11) ||
-                      (reservation.mealType === "night" && new Date().getHours() >= 19)
+                      (reservation.mealType === "night" && new Date().getHours() >= 23)
                     }
                   >
                     Cancel Reservation
