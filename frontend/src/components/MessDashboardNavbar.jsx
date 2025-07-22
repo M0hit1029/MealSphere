@@ -20,7 +20,7 @@ const MessDashboardNavbar = () => {
   const handleLogout = async () => {
     try {
       const response = await axios.post(
-        'http://localhost:3000/api/v1/messOwner/logout',
+        `${import.meta.env.VITE_BASE_URL}/messOwner/logout`,
         {},
         {
           withCredentials: true,
@@ -71,13 +71,13 @@ const MessDashboardNavbar = () => {
           </NavButton>
           <button
             onClick={handleLogout}
-            className="group relative overflow-hidden bg-gradient-to-r from-red-500 to-pink-500 text-white font-semibold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+            className="group relative overflow-hidden bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
           >
             <span className="relative z-10 flex items-center gap-2">
               <LogOut size={18} className="group-hover:rotate-12 transition-transform duration-300" />
               Logout
             </span>
-            <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-red-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-red-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </button>
         </div>
 
@@ -114,7 +114,7 @@ const MessDashboardNavbar = () => {
                 handleLogout();
                 setIsMenuOpen(false);
               }}
-              className="w-full bg-gradient-to-r from-red-500 to-pink-500 text-white font-semibold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
             >
               <LogOut size={18} />
               Logout

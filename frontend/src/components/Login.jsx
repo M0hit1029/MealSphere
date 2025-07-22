@@ -1,57 +1,23 @@
 import { useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
+import { User, Mail, Lock, Phone, Eye, EyeOff, Store } from "lucide-react";
 import axios from "axios";
+import Navbar from "./Navbar";
 
 function LoginSignupPage() {
   const { userType } = useParams();
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex flex-col relative">
-      {/* Background Image with Dark Overlay */}
-      <div
-        className="absolute inset-0"
-        style={{
-          backgroundImage: "url('/background.jpg')",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-          filter: "brightness(100%)", // Make the background darker without adding a tint
-        }}
-      />
-      {/* Overlay for readability */}
-      <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-      {/* Darker overlay without bluish tint */}
-      {/* Content */}
-      <div className="relative flex flex-col min-h-screen">
-        <Navbar />
-        <div className="mt-16 sm:mt-20">
-          <AuthSection userType={userType} navigate={navigate} />
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-100 to-purple-50 flex flex-col">
+      {/* Background Pattern */}
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22 viewBox=%220 0 100 100%22%3E%3Cg fill=%22%239C92AC%22 fill-opacity=%220.1%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2250%22/%3E%3C/g%3E%3C/svg%3E')] opacity-30"></div>
+
+      <Navbar />
+      <div className="flex-1 flex items-center justify-center pt-20 px-4 sm:px-6 relative z-10">
+        <AuthSection userType={userType} navigate={navigate} />
       </div>
     </div>
-  );
-}
-
-function Navbar() {
-  return (
-    <nav className="flex justify-between items-center p-5 bg-[#ffffff00]  w-full">
-      <h1 className="text-4xl font-bold text-white">MealSphere</h1>
-      <div className="flex items-center space-x-8 text-lg font-medium text-[#FFFFFF]">
-        <Link
-          to="/"
-          className="hover:text-yellow-500 transition-colors duration-200"
-        >
-          Home
-        </Link>
-        <a
-          href="#reviews"
-          className="hover:text-yellow-500 transition-colors duration-200"
-        >
-          Feedback
-        </a>
-      </div>
-    </nav>
   );
 }
 
@@ -65,11 +31,13 @@ function AuthSection({ userType, navigate }) {
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const effectiveUserType = userType || "customer";
 
   // Base URL
   const BASE_URL = import.meta.env.VITE_BASE_URL;
+  
   // Determine endpoint based on user type
   const API_ENDPOINTS = {
     customer: {
@@ -119,170 +87,253 @@ function AuthSection({ userType, navigate }) {
     }
   };
 
-const handleSignup = async (e) => {
-  e.preventDefault();
-  setLoading(true);
-  setError("");
+  const handleSignup = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError("");
 
-  try {
-    const endpoint =
-      effectiveUserType === "customer"
-        ? API_ENDPOINTS.customer.signup
-        : API_ENDPOINTS.messOwner.signup;
+    try {
+      const endpoint =
+        effectiveUserType === "customer"
+          ? API_ENDPOINTS.customer.signup
+          : API_ENDPOINTS.messOwner.signup;
 
-    const response = await axios.post(
-      endpoint,
-      {
-        name: formData.name,
-        phone: formData.phone,
-        email: formData.email,
-        password: formData.password,
-      },
-      {
-        withCredentials: true, // important to allow cookies from backend
-      }
-    );
+      await axios.post(
+        endpoint,
+        {
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email,
+          password: formData.password,
+        },
+        {
+          withCredentials: true,
+        }
+      );
 
-    // No need to store token in localStorage
-    // Cookie will be handled by backend via Set-Cookie header
+      navigate(
+        effectiveUserType === "customer" ? "/user-dashboard" : "/mess-dashboard"
+      );
+    } catch (err) {
+      console.error(err);
+      setError(err.response?.data?.message || "Signup failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    navigate(
-      effectiveUserType === "customer" ? "/user-dashboard" : "/mess-dashboard"
-    );
-  } catch (err) {
-    console.error(err);
-    setError(err.response?.data?.message || "Signup failed");
-  } finally {
-    setLoading(false);
-  }
-};
+  const userTypeConfig = {
+    customer: {
+      title: "Customer Portal",
+      icon: User,
+      color: "blue",
+      gradient: "from-blue-500 to-indigo-600",
+      bgGradient: "from-blue-50 to-indigo-50",
+      description: "Access your meal reservations and discover local messes"
+    },
+    messOwner: {
+      title: "Mess Owner Portal",
+      icon: Store,
+      color: "orange",
+      gradient: "from-orange-500 to-amber-600",
+      bgGradient: "from-orange-50 to-amber-50",
+      description: "Manage your mess, menus, and customer orders"
+    }
+  };
+
+  const config = userTypeConfig[effectiveUserType];
+  const IconComponent = config.icon;
 
   return (
-    <div className="flex-grow flex items-center justify-center py-8 sm:py-16 px-4">
-      <div
-        className="bg-[#FFFFFF] p-4 sm:p-6 rounded-xl shadow-lg w-full max-w-sm mx-auto relative border border-white/20"
-        style={{
-          backdropFilter: "blur(10px)", // Increased blur for a stronger effect
-          backgroundColor: "rgba(255, 255, 255, 0.1)", // Adjusted transparency to match the previous effect
-        }}
-      >
-        <h2 className="text-2xl sm:text-3xl font-extrabold text-[#FFFFFF] mb-4 sm:mb-6 text-center">
-          {effectiveUserType === "customer" ? "Customer" : "Mess Owner"}
-        </h2>
-        <div className="flex justify-center mb-4 sm:mb-6">
+    <div className="w-full max-w-md mx-auto animate-fadeIn">
+      <div className="card p-8 relative overflow-hidden">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <div className={`w-20 h-20 bg-gradient-to-r ${config.gradient} rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg`}>
+            <IconComponent className="w-10 h-10 text-white" />
+          </div>
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+            {config.title}
+          </h1>
+          <p className="text-gray-600 text-sm">
+            {config.description}
+          </p>
+        </div>
+
+        {/* Mode Toggle */}
+        <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
           <button
             onClick={() => setMode("login")}
-            className={`px-3 py-1 rounded-l-lg text-xs sm:text-sm ${
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-300 ${
               mode === "login"
-                ? "bg-amber-600 text-[#FFFFFF]"
-                : "bg-[#E5E7EB] text-amber-600"
-            } transition-all duration-200`}
+                ? `bg-gradient-to-r ${config.gradient} text-white shadow-md`
+                : "text-gray-600 hover:text-gray-800"
+            }`}
           >
             Login
           </button>
           <button
             onClick={() => setMode("signup")}
-            className={`px-3 py-1 rounded-r-lg text-xs sm:text-sm ${
+            className={`flex-1 py-2 px-4 rounded-md text-sm font-medium transition-all duration-300 ${
               mode === "signup"
-                ? "bg-amber-600 text-[#FFFFFF]"
-                : "bg-[#E5E7EB] text-amber-600"
-            } transition-all duration-200`}
+                ? `bg-gradient-to-r ${config.gradient} text-white shadow-md`
+                : "text-gray-600 hover:text-gray-800"
+            }`}
           >
             Sign Up
           </button>
         </div>
 
+        {/* Error Message */}
         {error && (
-          <div className="text-red-500 text-xs sm:text-sm text-center mb-4">{error}</div>
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 flex items-center animate-slideUp">
+            <div className="w-5 h-5 text-red-500 mr-2">⚠️</div>
+            <p className="text-sm">{error}</p>
+          </div>
         )}
 
+        {/* Forms */}
         {mode === "login" ? (
-          <form onSubmit={handleLogin} className="space-y-4">
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Email"
-              required
-              className="w-full p-3 bg-[#E5E7EB] border border-[#1E40AF]/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"
-            />
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Password"
-              required
-              className="w-full p-3 bg-[#E5E7EB] border border-[#1E40AF]/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"
-            />
-            <div className="flex justify-center">
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Email address"
+                required
+                className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+              />
+            </div>
+
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Password"
+                required
+                className="w-full pl-12 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+              />
               <button
-                type="submit"
-                disabled={loading}
-                className={`bg-amber-600 text-[#FFFFFF] px-6 py-2 rounded-lg hover:bg-amber-700 transition-all duration-300 shadow-md text-sm ${
-                  loading ? "opacity-75 cursor-not-allowed" : ""
-                }`}
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
               >
-                {loading ? "Logging in..." : "Login"}
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full bg-gradient-to-r ${config.gradient} text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none`}
+            >
+              {loading ? (
+                <div className="flex items-center justify-center">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  Logging in...
+                </div>
+              ) : (
+                "Login"
+              )}
+            </button>
           </form>
         ) : (
-          <form onSubmit={handleSignup} className="space-y-4">
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              placeholder={
-                effectiveUserType === "customer"
-                  ? "Full Name"
-                  : "Mess Owner's Name"
-              }
-              required
-              className="w-full p-3 bg-[#E5E7EB] border border-[#1E40AF]/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"
-            />
-            <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              placeholder="Phone Number"
-              required
-              className="w-full p-3 bg-[#E5E7EB] border border-[#1E40AF]/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"
-            />
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              placeholder="Email"
-              required
-              className="w-full p-3 bg-[#E5E7EB] border border-[#1E40AF]/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"
-            />
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Password"
-              required
-              className="w-full p-3 bg-[#e5e7eb] border border-[#1E40AF]/20 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-600"
-            />
-            <div className="flex justify-center">
+          <form onSubmit={handleSignup} className="space-y-6">
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleChange}
+                placeholder={
+                  effectiveUserType === "customer"
+                    ? "Full Name"
+                    : "Mess Owner's Name"
+                }
+                required
+                className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+              />
+            </div>
+
+            <div className="relative">
+              <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="Phone Number"
+                required
+                className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+              />
+            </div>
+
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type="email"
+                name="email"
+                value={formData.email}
+                onChange={handleChange}
+                placeholder="Email address"
+                required
+                className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+              />
+            </div>
+
+            <div className="relative">
+              <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Password"
+                required
+                className="w-full pl-12 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+              />
               <button
-                type="submit"
-                disabled={loading}
-                className={`bg-amber-600 text-[#FFFFFF] px-6 py-2 rounded-lg hover:bg-amber-700 transition-all duration-300 shadow-md text-sm ${
-                  loading ? "opacity-75 cursor-not-allowed" : ""
-                }`}
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
               >
-                {loading ? "Signing up..." : "Sign Up"}
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className={`w-full bg-gradient-to-r ${config.gradient} text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none`}
+            >
+              {loading ? (
+                <div className="flex items-center justify-center">
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                  Creating account...
+                </div>
+              ) : (
+                "Create Account"
+              )}
+            </button>
           </form>
         )}
+
+        {/* Footer */}
+        <div className="mt-8 text-center">
+          <Link
+            to="/"
+            className="text-gray-600 hover:text-gray-800 text-sm font-medium transition-colors duration-300 flex items-center justify-center gap-2"
+          >
+            ← Back to Home
+          </Link>
+        </div>
       </div>
     </div>
   );

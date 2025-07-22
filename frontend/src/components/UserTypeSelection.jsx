@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { User, Store, ArrowRight, Users, Utensils } from "lucide-react";
+import { User, Store, ArrowRight, Users, Utensils, Calendar, BarChart3, Settings, Shield } from "lucide-react";
+import Navbar from "./Navbar";
 
 function UserTypeSelectionPage() {
   const [isVisible, setIsVisible] = useState(false);
@@ -19,88 +20,6 @@ function UserTypeSelectionPage() {
       <HeroSection isVisible={isVisible} />
       <Footer />
     </div>
-  );
-}
-
-function Navbar() {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  return (
-    <nav
-      className={`fixed top-0 left-0 w-full z-50 transition-all duration-500 ${
-        isScrolled 
-          ? 'bg-white/95 backdrop-blur-lg shadow-xl border-b border-gray-200/50' 
-          : 'bg-white/80 backdrop-blur-md shadow-lg'
-      }`}
-    >
-      <div className="container mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
-        {/* Logo with Enhanced Animation */}
-        <div className="relative group">
-          <div className="absolute -inset-2 bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-300 animate-pulse"></div>
-          <div className="relative text-2xl sm:text-3xl font-extrabold tracking-wide">
-            <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent drop-shadow-lg animate-glow">
-              MealSphere
-            </span>
-          </div>
-          <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-400 rounded-full animate-ping"></div>
-          <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full"></div>
-        </div>
-
-        {/* Desktop Navigation */}
-        <div className="hidden md:flex items-center space-x-6">
-          <Link
-            to="/"
-            className="relative text-gray-700 hover:text-amber-600 font-medium transition-all duration-300 group flex items-center gap-2 py-2 px-4 rounded-lg hover:bg-amber-50"
-          >
-            Home
-            <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-amber-600 transition-all duration-300 group-hover:w-full"></span>
-          </Link>
-        </div>
-
-        {/* Mobile Menu Button */}
-        <button
-          className="md:hidden p-3 rounded-full text-gray-700 hover:bg-gray-100 transition-all duration-300 relative"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-        >
-          <div className={`w-6 h-6 flex flex-col justify-center items-center transition-all duration-300 ${isMenuOpen ? 'rotate-45' : ''}`}>
-            <span className={`block w-6 h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? 'rotate-90 translate-y-0' : '-translate-y-1'}`}></span>
-            <span className={`block w-6 h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? 'opacity-0' : 'opacity-100'}`}></span>
-            <span className={`block w-6 h-0.5 bg-current transition-all duration-300 ${isMenuOpen ? '-rotate-90 -translate-y-0' : 'translate-y-1'}`}></span>
-          </div>
-        </button>
-      </div>
-
-      {/* Mobile Menu */}
-      <div
-        className={`md:hidden absolute top-full left-0 w-full transition-all duration-500 ease-out ${
-          isMenuOpen 
-            ? 'opacity-100 translate-y-0 pointer-events-auto' 
-            : 'opacity-0 -translate-y-4 pointer-events-none'
-        }`}
-      >
-        <div className="bg-white/95 backdrop-blur-lg shadow-2xl border-t border-gray-200/50">
-          <div className="flex flex-col p-6 space-y-4">
-            <Link
-              to="/"
-              onClick={() => setIsMenuOpen(false)}
-              className="text-gray-700 hover:text-amber-600 font-medium py-3 px-4 rounded-lg hover:bg-amber-50 transition-all duration-300 transform hover:translate-x-2 flex items-center gap-3"
-            >
-              Home
-            </Link>
-          </div>
-        </div>
-      </div>
-    </nav>
   );
 }
 
@@ -124,77 +43,95 @@ function HeroSection({ isVisible }) {
           </p>
           
           {/* User Type Cards */}
-          <div className="grid sm:grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto mb-8 sm:mb-12">
+          <div className="grid sm:grid-cols-2 gap-6 sm:gap-8 max-w-5xl mx-auto mb-8 sm:mb-12">
             {/* Mess Owner Card */}
             <Link to="/login-signup/messOwner" className="group">
-              <div className="card hover-lift bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200 p-6 sm:p-8 text-center transform transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-orange-500 to-amber-600 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <Store className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
-                </div>
+              <div className="card hover-lift bg-gradient-to-br from-orange-50 to-amber-50 border-orange-200 p-6 sm:p-8 text-center transform transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl relative overflow-hidden">
+                {/* Background decoration */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-orange-200/30 to-amber-200/30 rounded-full -translate-y-16 translate-x-16 group-hover:scale-150 transition-transform duration-500"></div>
                 
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
-                  Mess Owner
-                </h2>
-                
-                <p className="text-sm sm:text-base md:text-lg text-gray-600 mb-4 sm:mb-6 leading-relaxed">
-                  Manage your mess services, menus, and customer orders efficiently with our comprehensive management tools
-                </p>
-                
-                <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
-                  <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-gray-700">
-                    <Users className="w-4 h-4 text-orange-500" />
-                    <span>Manage Members</span>
+                <div className="relative z-10">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-r from-orange-500 to-amber-600 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <Store className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
                   </div>
-                  <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-gray-700">
-                    <Utensils className="w-4 h-4 text-orange-500" />
-                    <span>Update Menus</span>
+                  
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                    Mess Owner
+                  </h2>
+                  
+                  <p className="text-sm sm:text-base md:text-lg text-gray-600 mb-6 leading-relaxed">
+                    Manage your mess services, menus, and customer orders efficiently with our comprehensive management tools
+                  </p>
+                  
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="flex flex-col items-center p-3 bg-white/50 rounded-lg">
+                      <Users className="w-6 h-6 text-orange-500 mb-2" />
+                      <span className="text-xs sm:text-sm font-medium text-gray-700">Manage Members</span>
+                    </div>
+                    <div className="flex flex-col items-center p-3 bg-white/50 rounded-lg">
+                      <Utensils className="w-6 h-6 text-orange-500 mb-2" />
+                      <span className="text-xs sm:text-sm font-medium text-gray-700">Update Menus</span>
+                    </div>
+                    <div className="flex flex-col items-center p-3 bg-white/50 rounded-lg">
+                      <BarChart3 className="w-6 h-6 text-orange-500 mb-2" />
+                      <span className="text-xs sm:text-sm font-medium text-gray-700">Track Analytics</span>
+                    </div>
+                    <div className="flex flex-col items-center p-3 bg-white/50 rounded-lg">
+                      <Settings className="w-6 h-6 text-orange-500 mb-2" />
+                      <span className="text-xs sm:text-sm font-medium text-gray-700">Mess Settings</span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-gray-700">
-                    <User className="w-4 h-4 text-orange-500" />
-                    <span>Track Attendance</span>
+                  
+                  <div className="flex items-center justify-center gap-2 text-orange-600 font-semibold group-hover:gap-3 transition-all duration-300">
+                    <span className="text-sm sm:text-base">Start Managing</span>
+                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform duration-300" />
                   </div>
-                </div>
-                
-                <div className="flex items-center justify-center gap-2 text-orange-600 font-semibold group-hover:gap-3 transition-all duration-300">
-                  <span className="text-sm sm:text-base">Get Started</span>
-                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform duration-300" />
                 </div>
               </div>
             </Link>
 
             {/* Customer Card */}
             <Link to="/login-signup/customer" className="group">
-              <div className="card hover-lift bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 p-6 sm:p-8 text-center transform transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6 group-hover:scale-110 transition-transform duration-300">
-                  <User className="w-8 h-8 sm:w-10 sm:h-10 text-white" />
-                </div>
+              <div className="card hover-lift bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200 p-6 sm:p-8 text-center transform transition-all duration-300 group-hover:scale-105 group-hover:shadow-2xl relative overflow-hidden">
+                {/* Background decoration */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-200/30 to-indigo-200/30 rounded-full -translate-y-16 translate-x-16 group-hover:scale-150 transition-transform duration-500"></div>
                 
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 mb-3 sm:mb-4">
-                  Customer
-                </h2>
-                
-                <p className="text-sm sm:text-base md:text-lg text-gray-600 mb-4 sm:mb-6 leading-relaxed">
-                  Discover delicious meals, place orders, and enjoy hassle-free dining from local mess services
-                </p>
-                
-                <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
-                  <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-gray-700">
-                    <Utensils className="w-4 h-4 text-blue-500" />
-                    <span>Browse Menus</span>
+                <div className="relative z-10">
+                  <div className="w-20 h-20 sm:w-24 sm:h-24 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full flex items-center justify-center mx-auto mb-6 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                    <User className="w-10 h-10 sm:w-12 sm:h-12 text-white" />
                   </div>
-                  <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-gray-700">
-                    <Users className="w-4 h-4 text-blue-500" />
-                    <span>Reserve Meals</span>
+                  
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+                    Customer
+                  </h2>
+                  
+                  <p className="text-sm sm:text-base md:text-lg text-gray-600 mb-6 leading-relaxed">
+                    Discover delicious meals, place orders, and enjoy hassle-free dining from local mess services
+                  </p>
+                  
+                  <div className="grid grid-cols-2 gap-4 mb-6">
+                    <div className="flex flex-col items-center p-3 bg-white/50 rounded-lg">
+                      <Utensils className="w-6 h-6 text-blue-500 mb-2" />
+                      <span className="text-xs sm:text-sm font-medium text-gray-700">Browse Menus</span>
+                    </div>
+                    <div className="flex flex-col items-center p-3 bg-white/50 rounded-lg">
+                      <Calendar className="w-6 h-6 text-blue-500 mb-2" />
+                      <span className="text-xs sm:text-sm font-medium text-gray-700">Reserve Meals</span>
+                    </div>
+                    <div className="flex flex-col items-center p-3 bg-white/50 rounded-lg">
+                      <Store className="w-6 h-6 text-blue-500 mb-2" />
+                      <span className="text-xs sm:text-sm font-medium text-gray-700">Find Nearby</span>
+                    </div>
+                    <div className="flex flex-col items-center p-3 bg-white/50 rounded-lg">
+                      <Shield className="w-6 h-6 text-blue-500 mb-2" />
+                      <span className="text-xs sm:text-sm font-medium text-gray-700">Secure Orders</span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-center gap-2 text-xs sm:text-sm text-gray-700">
-                    <Store className="w-4 h-4 text-blue-500" />
-                    <span>Find Nearby Messes</span>
+                  
+                  <div className="flex items-center justify-center gap-2 text-blue-600 font-semibold group-hover:gap-3 transition-all duration-300">
+                    <span className="text-sm sm:text-base">Start Ordering</span>
+                    <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform duration-300" />
                   </div>
-                </div>
-                
-                <div className="flex items-center justify-center gap-2 text-blue-600 font-semibold group-hover:gap-3 transition-all duration-300">
-                  <span className="text-sm sm:text-base">Get Started</span>
-                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform duration-300" />
                 </div>
               </div>
             </Link>

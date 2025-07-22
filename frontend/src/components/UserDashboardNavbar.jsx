@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Menu, LogOut, Home, MessageCircle } from "lucide-react";
+import { Menu, LogOut, Home, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -20,7 +20,7 @@ const UserDashboardNavbar = () => {
   const handleLogout = async () => {
     try {
       const response = await axios.post(
-        'http://localhost:3000/api/v1/user/logout',
+        `${import.meta.env.VITE_BASE_URL}/user/logout`,
         {},
         {
           withCredentials: true,
@@ -66,15 +66,18 @@ const UserDashboardNavbar = () => {
           <NavButton icon={Home} href="/">
             Home
           </NavButton>
+          <NavButton icon={User} href="/user-dashboard">
+            Dashboard
+          </NavButton>
           <button
             onClick={handleLogout}
-            className="group relative overflow-hidden bg-gradient-to-r from-red-500 to-pink-500 text-white font-semibold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+            className="group relative overflow-hidden bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
           >
             <span className="relative z-10 flex items-center gap-2">
               <LogOut size={18} className="group-hover:rotate-12 transition-transform duration-300" />
               Logout
             </span>
-            <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-red-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+            <div className="absolute inset-0 bg-gradient-to-r from-red-600 to-red-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
           </button>
         </div>
 
@@ -85,7 +88,7 @@ const UserDashboardNavbar = () => {
         >
           <Menu size={24} className={`transition-transform duration-300 ${isMenuOpen ? 'rotate-90' : ''}`} />
           {isMenuOpen && (
-            <div className="absolute inset-0 bg-blue-500/20 rounded-full animate-ping"></div>
+            <div className="absolute inset-0 bg-amber-500/20 rounded-full animate-ping"></div>
           )}
         </button>
       </div>
@@ -103,13 +106,15 @@ const UserDashboardNavbar = () => {
             <MobileNavLink icon={Home} href="#home" onClick={() => setIsMenuOpen(false)}>
               Home
             </MobileNavLink>
-      
+            <MobileNavLink icon={User} href="/user-dashboard" onClick={() => setIsMenuOpen(false)}>
+              Dashboard
+            </MobileNavLink>
             <button
               onClick={() => {
                 handleLogout();
                 setIsMenuOpen(false);
               }}
-              className="w-full bg-gradient-to-r from-red-500 to-pink-500 text-white font-semibold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
+              className="w-full bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center justify-center gap-2"
             >
               <LogOut size={18} />
               Logout
@@ -124,11 +129,11 @@ const UserDashboardNavbar = () => {
 const NavButton = ({ icon: Icon, href, children }) => (
   <a
     href={href}
-    className="relative text-gray-700 hover:text-blue-600 font-medium transition-all duration-300 group flex items-center gap-2 py-2 px-4 rounded-lg hover:bg-blue-50"
+    className="relative text-gray-700 hover:text-amber-600 font-medium transition-all duration-300 group flex items-center gap-2 py-2 px-4 rounded-lg hover:bg-amber-50"
   >
     <Icon size={18} className="group-hover:scale-110 transition-transform duration-300" />
     {children}
-    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-blue-600 transition-all duration-300 group-hover:w-full"></span>
+    <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-amber-600 transition-all duration-300 group-hover:w-full"></span>
   </a>
 );
 
@@ -136,7 +141,7 @@ const MobileNavLink = ({ icon: Icon, href, children, onClick }) => (
   <a
     href={href}
     onClick={onClick}
-    className="text-gray-700 hover:text-blue-600 font-medium py-3 px-4 rounded-lg hover:bg-blue-50 transition-all duration-300 transform hover:translate-x-2 flex items-center gap-3"
+    className="text-gray-700 hover:text-amber-600 font-medium py-3 px-4 rounded-lg hover:bg-amber-50 transition-all duration-300 transform hover:translate-x-2 flex items-center gap-3"
   >
     <Icon size={18} />
     {children}
