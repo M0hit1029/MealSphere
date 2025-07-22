@@ -3,154 +3,9 @@ import Navbar from "../components/UserDashboardNavbar";
 import { Clock, MapPin, Star, Calendar, Utensils, Hourglass } from "lucide-react";
 import axios from "axios";
 import debounce from "lodash/debounce";
-
-const MessCard = ({ mess, onMonthlyBooking, onDailyReservation, isReservationAllowed, reservedMesses }) => {
-  const { name, menu, address, _id, image } = mess;
-  const [isHovered, setIsHovered] = useState(false);
-  const dayDishes = menu?.dayMeal?.dishes || [];
-  const nightDishes = menu?.nightMeal?.dishes || [];
-  const hasSpots = true;
-
-  const reservedForDay = reservedMesses.some(
-    (res) => res.messId === _id && res.mealType === "day"
-  );
-  const reservedForNight = reservedMesses.some(
-    (res) => res.messId === _id && res.mealType === "night"
-  );
-  const baseURL = import.meta.env.VITE_BASE_URL || "http://localhost:3000";
-  const imageURL = image?.startsWith("/uploads")
-    ? `${baseURL}${image}`
-    : image || "https://res.cloudinary.com/dz1qj3x7h/image/upload/v1735681234/MealSphere/messDefaultImage.png";
-
-  return (
-    <div
-      className={`card group relative overflow-hidden transition-all duration-500 ${
-        isHovered ? "scale-105 shadow-2xl" : ""
-      }`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-purple-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-      <div className="relative overflow-hidden rounded-t-xl">
-        <img
-          src={imageURL}
-          alt={name}
-          className="w-full h-48 object-cover transition-transform duration-500 group-hover:scale-110"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm rounded-full px-3 py-1 flex items-center gap-1 animate-fadeIn">
-          <Star className="w-4 h-4 text-yellow-500 fill-current" />
-          <span className="text-sm font-semibold">4.5</span>
-        </div>
-      </div>
-      <div className="p-6 relative z-10">
-        <div className="mb-4">
-          <h3 className="text-xl font-bold text-gray-800 mb-2 group-hover:text-blue-600 transition-colors duration-300">
-            {name}
-          </h3>
-          <div className="flex items-center text-gray-600 text-sm">
-            <MapPin className="w-4 h-4 mr-1" />
-            <span className="truncate">{address || "No address available"}</span>
-          </div>
-        </div>
-        <div className="space-y-4 mb-6">
-          <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-4 rounded-lg border border-yellow-200/50">
-            <div className="flex items-center mb-2">
-              <div className="w-3 h-3 bg-yellow-400 rounded-full mr-2 animate-pulse"></div>
-              <h4 className="text-sm font-semibold text-yellow-800">Lunch</h4>
-            </div>
-            {dayDishes.length > 0 ? (
-              <div className="space-y-2">
-                {dayDishes.slice(0, 2).map((dish, index) => (
-                  <div key={index} className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-700">{dish.name}</span>
-                    <span className="text-sm font-bold text-green-600">₹{dish.price}</span>
-                  </div>
-                ))}
-                {dayDishes.length > 2 && (
-                  <p className="text-xs text-gray-500">+{dayDishes.length - 2} more items</p>
-                )}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500 italic">No lunch available</p>
-            )}
-          </div>
-          <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-200/50">
-            <div className="flex items-center mb-2">
-              <div className="w-3 h-3 bg-blue-400 rounded-full mr-2 animate-pulse"></div>
-              <h4 className="text-sm font-semibold text-blue-800">Dinner</h4>
-            </div>
-            {nightDishes.length > 0 ? (
-              <div className="space-y-2">
-                {nightDishes.slice(0, 2).map((dish, index) => (
-                  <div key={index} className="flex justify-between items-center">
-                    <span className="text-sm font-medium text-gray-700">{dish.name}</span>
-                    <span className="text-sm font-bold text-green-600">₹{dish.price}</span>
-                  </div>
-                ))}
-                {nightDishes.length > 2 && (
-                  <p className="text-xs text-gray-500">+{nightDishes.length - 2} more items</p>
-                )}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-500 italic">No dinner available</p>
-            )}
-          </div>
-        </div>
-        <div className="space-y-3">
-          <button
-            onClick={() => onMonthlyBooking(name)}
-            className={`w-full btn-primary flex items-center justify-center gap-2 ${
-              !hasSpots ? "opacity-50 cursor-not-allowed" : ""
-            }`}
-            disabled={!hasSpots}
-          >
-            <Calendar className="w-4 h-4" />
-            Enroll Monthly
-          </button>
-          <div className="grid grid-cols-2 gap-3">
-            {reservedForDay ? (
-              <div className="text-center py-2 px-4 bg-gray-100 rounded-lg text-sm text-gray-600">
-                Lunch Reserved ✓
-              </div>
-            ) : (
-              <button
-                onClick={() => onDailyReservation(mess._id, "day")}
-                className={`btn-success text-sm flex items-center justify-center gap-1 ${
-                  !hasSpots || !isReservationAllowed.day
-                    ? "opacity-50 cursor-not-allowed"
-                    : ""
-                }`}
-                disabled={!hasSpots || !isReservationAllowed.day}
-              >
-                <Utensils className="w-3 h-3" />
-                Reserve Lunch
-              </button>
-            )}
-            {reservedForNight ? (
-              <div className="text-center py-2 px-4 bg-gray-100 rounded-lg text-sm text-gray-600">
-                Dinner Reserved ✓
-              </div>
-            ) : (
-              <button
-                onClick={() => onDailyReservation(mess._id, "night")}
-                className={`bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 text-sm flex items-center justify-center gap-1 ${
-                  !hasSpots || !isReservationAllowed.night
-                    ? "opacity-50 cursor-not-allowed"
-                    : ""
-                }`}
-                disabled={!hasSpots || !isReservationAllowed.night}
-              >
-                <Utensils className="w-3 h-3" />
-                Reserve Dinner
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+import MessCard from "../components/MessCard";
 
 function UserDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -320,11 +175,11 @@ function UserDashboard() {
     const now = new Date();
     const currentHour = now.getHours();
     if (mealType === "day" && currentHour >= 11) {
-      alert("Cannot cancel lunch reservation after 11 AM.");
+      toast.error("Cannot cancel lunch reservation after 11 AM.");
       return;
     }
     if (mealType === "night" && currentHour >= 23) {
-      alert("Cannot cancel dinner reservation after 7 PM.");
+      toast.error("Cannot cancel dinner reservation after 7 PM.");
       return;
     }
     if (window.confirm(`Are you sure you want to cancel your ${mealType === "day" ? "lunch" : "dinner"} reservation at ${messName}?`)) {
@@ -333,10 +188,10 @@ function UserDashboard() {
           `${import.meta.env.VITE_BASE_URL}/user/reservations/cancel/${reservationId}`,
           { withCredentials: true }
         );
-        alert(`Reservation at ${messName} cancelled successfully!`);
+        toast.success(`Reservation at ${messName} cancelled successfully!`);
         fetchReservations();
       } catch (err) {
-        setError(err.response?.data?.message || "Failed to cancel reservation.");
+        toast.error(err.response?.data?.message || "Failed to cancel reservation.");
       }
     }
   };
@@ -350,7 +205,7 @@ function UserDashboard() {
         { withCredentials: true }
       );
       if (response.status === 200) {
-        alert(
+        toast.info(
           `To join ${messName}, please visit the mess owner at their location (${
             response.data.enrollment.messId.address
           }) and pay monthly charge.`
@@ -359,12 +214,12 @@ function UserDashboard() {
       }
     } catch (err) {
       if (err.response?.status === 400) {
-        alert("Already registered for a mess!");
+        toast.warn("Already registered for a mess!");
       } else if (err.response?.status === 500) {
-        alert("Enrolled! Please wait for the mess owner to accept your request.");
+        toast.info("Enrolled! Please wait for the mess owner to accept your request.");
         fetchEnrolledMess();
       } else {
-        alert("Server error");
+        toast.error("Server error");
       }
     }
   };
@@ -382,10 +237,10 @@ function UserDashboard() {
           { messId, mealType },
           { withCredentials: true }
         );
-        alert(response.data.message || `Reservation confirmed for ${mealType === "day" ? "lunch" : "dinner"} at ${selectedMess.name}! Please visit ${selectedMess.name} to eat and pay.`);
+        toast.success(response.data.message || `Reservation confirmed for ${mealType === "day" ? "lunch" : "dinner"} at ${selectedMess.name}! Please visit ${selectedMess.name} to eat and pay.`);
         fetchReservations();
       } catch (err) {
-        alert(err.response?.data?.message || `Failed to reserve ${mealType === "day" ? "lunch" : "dinner"} meal.`);
+        toast.error(err.response?.data?.message || `Failed to reserve ${mealType === "day" ? "lunch" : "dinner"} meal.`);
       }
     }
   };
@@ -401,10 +256,10 @@ function UserDashboard() {
       try {
         const endpoint = `${import.meta.env.VITE_BASE_URL}/mess/attend/${messId}/${mealType}`;
         const response = await axios.post(endpoint, {}, { withCredentials: true });
-        alert(response.data.message || `Attendance confirmed for ${mealType === "day" ? "lunch" : "dinner"} at ${messName}! Please visit ${messName} to eat and pay.`);
+        toast.success(response.data.message || `Attendance confirmed for ${mealType === "day" ? "lunch" : "dinner"} at ${messName}! Please visit ${messName} to eat and pay.`);
         fetchReservations();
       } catch (err) {
-        alert(err.response?.data?.message || `Failed to reserve ${mealType === "day" ? "lunch" : "dinner"} meal.`);
+        toast.error(err.response?.data?.message || `Failed to reserve ${mealType === "day" ? "lunch" : "dinner"} meal.`);
       }
     }
   };
@@ -437,6 +292,7 @@ function UserDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 flex flex-col">
       <Navbar />
+      <ToastContainer position="top-right" autoClose={3000} hideProgressBar={false} newestOnTop closeOnClick pauseOnFocusLoss draggable pauseOnHover />
       <div className="flex flex-1 flex-col mt-20 p-4 sm:p-6">
         <div className="mb-4 sm:mb-6 animate-slideIn">
           <div className="bg-gradient-to-r from-amber-100 to-orange-100 border border-amber-200 rounded-xl p-4 flex items-center gap-3">
@@ -610,7 +466,7 @@ function UserDashboard() {
                 >
                   <div className="flex items-center gap-4 mb-4">
                     <div
-                      className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ${
+                      className={`w-w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ${
                         reservation.mealType === "day"
                           ? "bg-gradient-to-r from-yellow-500 to-orange-500"
                           : "bg-gradient-to-r from-blue-500 to-indigo-500"

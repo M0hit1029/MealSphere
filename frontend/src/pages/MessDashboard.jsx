@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/MessDashboardNavbar";
@@ -87,7 +86,7 @@ const MessRegistrationPage = () => {
   };
 
   const handleDelete = async (messId) => {
-    if (!confirm("Are you sure you want to delete this mess?")) return;
+    if (!window.confirm("Are you sure you want to delete this mess? Yes or No")) return;
     try {
       setLoading(true);
       await axios.delete(
@@ -125,7 +124,7 @@ const MessRegistrationPage = () => {
         { menu: menuForm },
         { withCredentials: true }
       );
-      setSuccess(response.data.message);
+      setSuccess(response.data.message || "Menu updated successfully");
       setMessData((prev) =>
         prev.map((mess) =>
           mess._id === selectedMessId ? { ...mess, menu: menuForm } : mess
@@ -149,9 +148,9 @@ const MessRegistrationPage = () => {
     if (loading) {
       return (
         <div className="col-span-full flex justify-center items-center p-12">
-          <div className="flex flex-col items-center animate-fadeIn">
+          <div className="flex flex-col items-center">
             <svg
-              className="animate-spin h-10 w-10 text-blue-600 mb-4"
+              className="animate-spin h-10 w-10 text-indigo-600 mb-4"
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
               viewBox="0 0 24 24"
@@ -171,10 +170,8 @@ const MessRegistrationPage = () => {
 
     if (messData.length === 0) {
       return (
-        <div className="col-span-full bg-white rounded-xl shadow-lg p-8 text-center animate-scaleIn">
-          <div className="flex justify-center mb-4 animate-bounce">
-            <span className="text-4xl">🍽️</span>
-          </div>
+        <div className="col-span-full bg-white rounded-xl shadow-md p-8 text-center border border-indigo-100">
+          <div className="flex justify-center mb-4 text-indigo-500 text-4xl">🍽️</div>
           <p className="text-gray-600 text-xl mb-2">No messes registered yet.</p>
           <p className="text-gray-500">Click on "Add New Mess" to get started.</p>
         </div>
@@ -184,7 +181,7 @@ const MessRegistrationPage = () => {
     return messData.map((mess) => (
       <Card
         key={mess._id}
-        _id={mess._id}  
+        _id={mess._id}
         name={mess.name}
         address={mess.address}
         liveLocation={mess.liveLocation}
@@ -205,14 +202,14 @@ const MessRegistrationPage = () => {
       <Navbar />
 
       <div className="container mx-auto px-4 py-6 sm:py-8 mt-16 sm:mt-20 relative z-10">
-        <div className="bg-white rounded-xl shadow-2xl p-4 sm:p-6 mb-4 sm:mb-6 mt-2 sm:mt-4 relative z-20 animate-slideIn">
+        <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 mb-4 sm:mb-6 mt-2 sm:mt-4 border border-indigo-100">
           <div className="flex justify-between items-center">
-            <h2 className="text-xl sm:text-2xl font-bold text-gray-800 flex items-center">
+            <h2 className="text-xl sm:text-2xl font-bold text-indigo-800 flex items-center">
               <span className="mr-2">🍽️</span> Your Registered Messes
             </h2>
             <button
               onClick={() => navigate("./add-mess")}
-              className="bg-blue-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-blue-700 transition-all duration-300 flex items-center animate-pulse-slow text-sm sm:text-base"
+              className="bg-indigo-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all duration-300 flex items-center text-sm sm:text-base"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -233,7 +230,7 @@ const MessRegistrationPage = () => {
         </div>
 
         {success && (
-          <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-lg shadow-md flex items-center animate-slideUp">
+          <div className="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-lg shadow-md flex items-center">
             <svg className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
             </svg>
@@ -242,7 +239,7 @@ const MessRegistrationPage = () => {
         )}
 
         {error && (
-          <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-lg shadow-md flex items-center animate-slideUp">
+          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-lg shadow-md flex items-center">
             <svg className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -257,9 +254,9 @@ const MessRegistrationPage = () => {
 
       {isMenuModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-6 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl transform transition-all animate-scaleIn">
+          <div className="bg-white p-6 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl border border-indigo-200">
             <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-800 flex items-center">
+              <h2 className="text-2xl font-bold text-indigo-800 flex items-center">
                 <span className="mr-2">📝</span> Update Today's Menu
               </h2>
               <button
@@ -279,17 +276,17 @@ const MessRegistrationPage = () => {
             </div>
 
             <form onSubmit={handleMenuSubmit} className="space-y-6">
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 animate-fadeIn">
-                <h3 className="text-lg font-semibold text-blue-800 mb-3 flex items-center">
+              <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 p-4 rounded-lg border border-yellow-200">
+                <h3 className="text-lg font-semibold text-yellow-800 mb-3 flex items-center">
                   <span className="mr-2">☀️</span> Day Meal
                 </h3>
                 {menuForm.dayMeal.dishes.map((dish, index) => (
                   <div
                     key={index}
-                    className="space-y-3 bg-white border border-blue-200 p-4 rounded-lg mt-3 shadow-sm transform transition-all hover:shadow-md"
+                    className="space-y-3 bg-white border border-yellow-200 p-4 rounded-lg mt-3 shadow-sm hover:shadow-md transition-all"
                   >
                     <div className="flex justify-between items-start">
-                      <div className="font-medium text-blue-700">Dish #{index + 1}</div>
+                      <div className="font-medium text-yellow-700">Dish #{index + 1}</div>
                       <button
                         type="button"
                         onClick={() => deleteDish("dayMeal", index)}
@@ -327,7 +324,7 @@ const MessRegistrationPage = () => {
                         placeholder="Dish Name"
                         value={dish.name}
                         onChange={(e) => handleMenuChange(e, "dayMeal", index, "name")}
-                        className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                        className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all"
                         required
                       />
                     </div>
@@ -352,7 +349,7 @@ const MessRegistrationPage = () => {
                         placeholder="Price"
                         value={dish.price}
                         onChange={(e) => handleMenuChange(e, "dayMeal", index, "price")}
-                        className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                        className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all"
                         required
                       />
                     </div>
@@ -372,7 +369,7 @@ const MessRegistrationPage = () => {
                         placeholder="Items (comma-separated)"
                         value={dish.items instanceof Array ? dish.items.join(", ") : dish.items}
                         onChange={(e) => handleMenuChange(e, "dayMeal", index, "items")}
-                        className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all"
+                        className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all"
                         required
                       />
                     </div>
@@ -381,7 +378,7 @@ const MessRegistrationPage = () => {
                 <button
                   type="button"
                   onClick={() => addDish("dayMeal")}
-                  className="mt-3 text-blue-600 hover:text-blue-800 font-medium flex items-center transition-all duration-300"
+                  className="mt-3 text-yellow-600 hover:text-yellow-800 font-medium flex items-center transition-all duration-300"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -401,14 +398,14 @@ const MessRegistrationPage = () => {
                 </button>
               </div>
 
-              <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 animate-fadeIn animate-delay-200">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-100 p-4 rounded-lg border border-indigo-200">
                 <h3 className="text-lg font-semibold text-indigo-800 mb-3 flex items-center">
                   <span className="mr-2">🌙</span> Night Meal
                 </h3>
                 {menuForm.nightMeal.dishes.map((dish, index) => (
                   <div
                     key={index}
-                    className="space-y-3 bg-white border border-indigo-200 p-4 rounded-lg mt-3 shadow-sm transform transition-all hover:shadow-md"
+                    className="space-y-3 bg-white border border-indigo-200 p-4 rounded-lg mt-3 shadow-sm hover:shadow-md transition-all"
                   >
                     <div className="flex justify-between items-start">
                       <div className="font-medium text-indigo-700">Dish #{index + 1}</div>
@@ -524,7 +521,7 @@ const MessRegistrationPage = () => {
               </div>
 
               {error && (
-                <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-3 rounded-md animate-shake">
+                <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-3 rounded-md">
                   <div className="flex">
                     <svg
                       className="h-5 w-5 mr-2"
@@ -545,7 +542,7 @@ const MessRegistrationPage = () => {
               )}
 
               {success && (
-                <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-3 rounded-md animate-slideUp">
+                <div className="bg-green-50 border-l-4 border-green-500 text-green-700 p-3 rounded-md">
                   <div className="flex">
                     <svg
                       className="h-5 w-5 mr-2"
@@ -576,7 +573,7 @@ const MessRegistrationPage = () => {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="px-4 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:bg-blue-400 transition-all duration-300 shadow-md hover:shadow-lg"
+                  className="px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 disabled:bg-indigo-400 transition-all duration-300 shadow-md hover:shadow-lg"
                 >
                   {loading ? (
                     <span className="flex items-center">
