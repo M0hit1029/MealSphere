@@ -330,4 +330,17 @@ userRouter.put("/profile/update",[userAuth],async(req,res)=>{
   }
 });
 
+userRouter.delete("/profile/delete",[userAuth],async(req,res)=>{
+  try{
+    const user = await userModel.findByIdAndDelete(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({ message: "Profile deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting profile:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
 module.exports = userRouter;

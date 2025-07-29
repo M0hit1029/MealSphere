@@ -194,4 +194,51 @@ messOwnerRouter.delete("/enrollment/:enrollmentId/reject", messOwnerAuth, async 
   }
 });
 
+messOwnerRouter.get("/profile", messOwnerAuth, async (req, res) => {
+  try {
+    const messOwner = await messOwnerModel.findById(req.messOwnerId);
+    if (!messOwner) {
+      return res.status(404).json({ message: "Mess owner not found" });
+    }
+    res.status(200).json({ messOwner });
+  } catch (error) {
+    console.error("Error fetching mess owner profile:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+messOwnerRouter.put("/profile/update", messOwnerAuth, async (req, res) => {
+  try {
+    const { name, email, phone } = req.body;
+    const messOwner = await messOwnerModel.findById(req.messOwnerId);
+    if (!messOwner) {
+      return res.status(404).json({ message: "Mess owner not found" });
+    }
+
+    // Update mess owner details
+    messOwner.name = name || messOwner.name;
+    messOwner.email = email || messOwner.email;
+    messOwner.phone = phone || messOwner.phone;
+
+    await messOwner.save();
+    res.status(200).json({ message: "Profile updated successfully", messOwner });
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+messOwnerRouter.delete("/profile/delete", messOwnerAuth, async (req, res) => {
+  try {
+    const messOwner = await messOwnerModel.findByIdAndDelete(req.messOwnerId);
+    if (!messOwner) {
+      return res.status(404).json({ message: "Mess owner not found" });
+    }
+    res.status(200).json({ message: "Profile deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting profile:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
 module.exports = messOwnerRouter;
