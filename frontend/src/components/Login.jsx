@@ -9,7 +9,7 @@ function LoginSignupPage() {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-100 to-purple-50 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-100 to-purple-50 flex flex-col p-4">
       {/* Background Pattern */}
       <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22 viewBox=%220 0 100 100%22%3E%3Cg fill=%22%239C92AC%22 fill-opacity=%220.1%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2250%22/%3E%3C/g%3E%3C/svg%3E')] opacity-30"></div>
 
@@ -29,7 +29,7 @@ function AuthSection({ userType, navigate }) {
     name: "",
     phone: "",
   });
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
@@ -37,7 +37,7 @@ function AuthSection({ userType, navigate }) {
 
   // Base URL
   const BASE_URL = import.meta.env.VITE_BASE_URL;
-  
+
   // Determine endpoint based on user type
   const API_ENDPOINTS = {
     customer: {
@@ -50,14 +50,93 @@ function AuthSection({ userType, navigate }) {
     },
   };
 
+  // Validation functions for signup only
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email) ? "" : "Please enter a valid email address";
+  };
+
+  const validatePassword = (password) => {
+    if (password.length < 8) {
+      return "Password must be at least 8 characters long";
+    }
+    if (!/[A-Z]/.test(password)) {
+      return "Password must contain at least one uppercase letter";
+    }
+    if (!/[a-z]/.test(password)) {
+      return "Password must contain at least one lowercase letter";
+    }
+    if (!/[0-9]/.test(password)) {
+      return "Password must contain at least one number";
+    }
+    if (!/[^A-Za-z0-9]/.test(password)) {
+      return "Password must contain at least one special character";
+    }
+    return "";
+  };
+
+  const validateName = (name) => {
+    if (name.length < 2) {
+      return "Name must be at least 2 characters long";
+    }
+    if (!/^[a-zA-Z\s]*$/.test(name)) {
+      return "Name can only contain letters and spaces";
+    }
+    return "";
+  };
+
+  const validatePhone = (phone) => {
+    // Indian phone number: +91 followed by 10 digits starting with 6, 7, 8, or 9
+    const phoneRegex = /^\+91[6-9]\d{9}$/;
+    return phoneRegex.test(phone) ? "" : "Please enter a valid Indian phone number (e.g., +91XXXXXXXXXX)";
+  };
+
+  const validateForm = () => {
+    if (mode === "login") return true; // No validation for login
+
+    const newErrors = {};
+    
+    newErrors.email = validateEmail(formData.email);
+    newErrors.password = validatePassword(formData.password);
+    newErrors.name = validateName(formData.name);
+    newErrors.phone = validatePhone(formData.phone);
+
+    setErrors(newErrors);
+    return Object.values(newErrors).every(error => error === "");
+  };
+
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    // Sanitize input
+    const sanitizedValue = value.replace(/[<>{}]/g, '');
+    setFormData({ ...formData, [name]: sanitizedValue });
+    
+    // Real-time validation for signup only
+    if (mode === "signup") {
+      switch (name) {
+        case "email":
+          setErrors({ ...errors, email: validateEmail(sanitizedValue) });
+          break;
+        case "password":
+          setErrors({ ...errors, password: validatePassword(sanitizedValue) });
+          break;
+        case "name":
+          setErrors({ ...errors, name: validateName(sanitizedValue) });
+          break;
+        case "phone":
+          setErrors({ ...errors, phone: validatePhone(sanitizedValue) });
+          break;
+        default:
+          break;
+      }
+    }
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    
     setLoading(true);
-    setError("");
+    setErrors({ ...errors, server: "" });
 
     try {
       const endpoint =
@@ -68,20 +147,26 @@ function AuthSection({ userType, navigate }) {
       await axios.post(
         endpoint,
         {
-          email: formData.email,
+          email: formData.email.trim(),
           password: formData.password,
         },
         {
           withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+            "X-XSS-Protection": "1; mode=block",
+            "X-Content-Type-Options": "nosniff"
+          }
         }
       );
       navigate(
         effectiveUserType === "customer" ? "/user-dashboard" : "/mess-dashboard"
       );
     } catch (err) {
-      setError(
-        err.response?.data?.message || "Login failed. Please try again."
-      );
+      setErrors({
+        ...errors,
+        server: err.response?.data?.message || "Login failed. Please try again."
+      });
     } finally {
       setLoading(false);
     }
@@ -89,8 +174,13 @@ function AuthSection({ userType, navigate }) {
 
   const handleSignup = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
     setLoading(true);
-    setError("");
+    setErrors({ ...errors, server: "" });
 
     try {
       const endpoint =
@@ -101,13 +191,18 @@ function AuthSection({ userType, navigate }) {
       await axios.post(
         endpoint,
         {
-          name: formData.name,
-          phone: formData.phone,
-          email: formData.email,
+          name: formData.name.trim(),
+          phone: formData.phone.trim(),
+          email: formData.email.trim(),
           password: formData.password,
         },
         {
           withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+            "X-XSS-Protection": "1; mode=block",
+            "X-Content-Type-Options": "nosniff"
+          }
         }
       );
 
@@ -115,8 +210,10 @@ function AuthSection({ userType, navigate }) {
         effectiveUserType === "customer" ? "/user-dashboard" : "/mess-dashboard"
       );
     } catch (err) {
-      console.error(err);
-      setError(err.response?.data?.message || "Signup failed");
+      setErrors({
+        ...errors,
+        server: err.response?.data?.message || "Signup failed"
+      });
     } finally {
       setLoading(false);
     }
@@ -184,17 +281,25 @@ function AuthSection({ userType, navigate }) {
           </button>
         </div>
 
-        {/* Error Message */}
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 flex items-center animate-slideUp">
-            <div className="w-5 h-5 text-red-500 mr-2">⚠️</div>
-            <p className="text-sm">{error}</p>
+        {/* Error Messages */}
+        {Object.values(errors).some(error => error) && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 animate-slideUp">
+            {errors.server && (
+              <div className="flex items-center mb-2">
+                <div className="w-5 h-5 text-red-500 mr-2">⚠️</div>
+                <p className="text-sm">{errors.server}</p>
+              </div>
+            )}
+            {mode === "signup" && errors.email && <p className="text-sm ml-7">{errors.email}</p>}
+            {mode === "signup" && errors.password && <p className="text-sm ml-7">{errors.password}</p>}
+            {mode === "signup" && errors.name && <p className="text-sm ml-7">{errors.name}</p>}
+            {mode === "signup" && errors.phone && <p className="text-sm ml-7">{errors.phone}</p>}
           </div>
         )}
 
         {/* Forms */}
         {mode === "login" ? (
-          <form onSubmit={handleLogin} className="space-y-6">
+          <form onSubmit={handleLogin} className="space-y-6" noValidate>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
@@ -244,7 +349,7 @@ function AuthSection({ userType, navigate }) {
             </button>
           </form>
         ) : (
-          <form onSubmit={handleSignup} className="space-y-6">
+          <form onSubmit={handleSignup} className="space-y-6" noValidate>
             <div className="relative">
               <User className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <input
@@ -258,7 +363,9 @@ function AuthSection({ userType, navigate }) {
                     : "Mess Owner's Name"
                 }
                 required
-                className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+                className={`w-full pl-12 pr-4 py-3 bg-gray-50 border ${
+                  errors.name ? 'border-red-500' : 'border-gray-200'
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300`}
               />
             </div>
 
@@ -269,9 +376,11 @@ function AuthSection({ userType, navigate }) {
                 name="phone"
                 value={formData.phone}
                 onChange={handleChange}
-                placeholder="Phone Number"
+                placeholder="+91XXXXXXXXXX"
                 required
-                className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+                className={`w-full pl-12 pr-4 py-3 bg-gray-50 border ${
+                  errors.phone ? 'border-red-500' : 'border-gray-200'
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300`}
               />
             </div>
 
@@ -284,7 +393,9 @@ function AuthSection({ userType, navigate }) {
                 onChange={handleChange}
                 placeholder="Email address"
                 required
-                className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+                className={`w-full pl-12 pr-4 py-3 bg-gray-50 border ${
+                  errors.email ? 'border-red-500' : 'border-gray-200'
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300`}
               />
             </div>
 
@@ -297,7 +408,9 @@ function AuthSection({ userType, navigate }) {
                 onChange={handleChange}
                 placeholder="Password"
                 required
-                className="w-full pl-12 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
+                className={`w-full pl-12 pr-12 py-3 bg-gray-50 border ${
+                  errors.password ? 'border-red-500' : 'border-gray-200'
+                } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300`}
               />
               <button
                 type="button"
@@ -310,7 +423,7 @@ function AuthSection({ userType, navigate }) {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || Object.values(errors).some(error => error)}
               className={`w-full bg-gradient-to-r ${config.gradient} text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none`}
             >
               {loading ? (

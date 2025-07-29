@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
     phone: { type: String },
-
+    image: {type:String, default: 'https://res.cloudinary.com/dz1qj3x8h/image/upload/v1735681234/MealSphere/default_user.png'},
     liveLocation: {
       type: { type: String, enum: ['Point'], default: 'Point' },
       coordinates: { type: [Number], default: [0, 0] },

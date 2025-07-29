@@ -295,4 +295,39 @@ userRouter.delete(
   }
 );
 
+userRouter.get("/profile",[userAuth],async(rea,res)=>{
+  try{
+    constuser = await userModel.findById(req.userId).select("-password");
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({ user });
+  } catch (error) {
+    console.error("Error fetching user profile:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
+userRouter.put("/profile/update",[userAuth],async(req,res)=>{
+  try{
+    const { name, email, phone } = req.body;
+    const user = await userModel.findById(req.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Update user details
+    user.name = name || user.name;
+    user.email = email || user.email;
+    user.phone = phone || user.phone;
+
+    await user.save();
+    
+    res.status(200).json({ message: "Profile updated successfully", user });
+  } catch (error) {
+    console.error("Error updating profile:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
+
 module.exports = userRouter;

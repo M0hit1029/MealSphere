@@ -65,7 +65,7 @@ const Navbar = () => {
             <button className="group relative overflow-hidden bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 flex items-center gap-2">
               <span className="relative z-10 flex items-center gap-2">
                 <User size={18} className="group-hover:rotate-12 transition-transform duration-300" />
-                Join Us
+                Join Us / Login
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-orange-600 to-amber-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
             </button>

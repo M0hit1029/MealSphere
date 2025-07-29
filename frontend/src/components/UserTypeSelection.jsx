@@ -31,7 +31,7 @@ function HeroSection({ isVisible }) {
         <div className={`transition-all duration-1000 ease-out ${
           isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
         }`}>
-          <h1 className="text-3xl xs:text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
+          <h1 className="mt-10 text-3xl xs:text-4xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-gray-900 mb-4 sm:mb-6 leading-tight">
             Choose Your
             <span className="block bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent mt-2">
               Account Type
@@ -60,7 +60,7 @@ function HeroSection({ isVisible }) {
                   </h2>
                   
                   <p className="text-sm sm:text-base md:text-lg text-gray-600 mb-6 leading-relaxed">
-                    Manage your mess services, menus, and customer orders efficiently with our comprehensive management tools
+                    Manage your mess services, menus, and customers, efficiently with our comprehensive management tools
                   </p>
                   
                   <div className="grid grid-cols-2 gap-4 mb-6">
@@ -129,7 +129,7 @@ function HeroSection({ isVisible }) {
                   </div>
                   
                   <div className="flex items-center justify-center gap-2 text-blue-600 font-semibold group-hover:gap-3 transition-all duration-300">
-                    <span className="text-sm sm:text-base">Start Ordering</span>
+                    <span className="text-sm sm:text-base">Start Reserving</span>
                     <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform duration-300" />
                   </div>
                 </div>
@@ -139,7 +139,7 @@ function HeroSection({ isVisible }) {
 
           {/* Back to Home Button */}
           <Link to="/">
-            <button className="btn-secondary text-sm sm:text-base">
+            <button className="btn-secondary text-sm sm:text-base mb-4">
               ← Back to Home
             </button>
           </Link>
