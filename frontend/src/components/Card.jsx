@@ -11,7 +11,7 @@ const Card = ({
   onViewMembers,
   className,
   image,
-  _id, // Added _id prop for navigation
+  _id,
 }) => {
   const navigate = useNavigate();
   const baseURL = import.meta.env.VITE_BASE_URL || "http://localhost:3000";
@@ -22,23 +22,27 @@ const Card = ({
   const displayLocation = liveLocation?.coordinates
     ? `Lat: ${liveLocation.coordinates[1]}, Lng: ${liveLocation.coordinates[0]}`
     : liveLocation || "Not provided";
+
   return (
     <div
-      className={`bg-white rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 ${className}`}
+      className={`bg-white rounded-xl shadow-lg overflow-hidden transform transition-all duration-300 flex flex-col ${className}`}
+      style={{ minHeight: "420px" }} // Ensures card height consistency
     >
-      <img
-        src={imageURL}
-        alt={name}
-        className="w-full h-40 object-cover"
-      />
-      <div className="p-6">
-        <h3 className="text-xl font-bold text-gray-800 mb-2">{name}</h3>
-        <p className="text-gray-600 mb-1">
-          <span className="font-semibold">Address:</span> {address}
-        </p>
-        <p className="text-gray-600 mb-4">
-          <span className="font-semibold">Location:</span> {displayLocation}
-        </p>
+      <img src={imageURL} alt={name} className="w-full h-40 object-top" />
+
+      <div className="flex flex-col justify-between p-6 flex-grow">
+        {/* Content Section */}
+        <div className="mb-4">
+          <h3 className="text-xl font-bold text-gray-800 mb-2">{name}</h3>
+          <p className="text-gray-600 mb-1 line-clamp-2 break-words">
+            <span className="font-semibold">Address:</span> {address}
+          </p>
+          <p className="text-gray-600 mb-4 line-clamp-2 break-words">
+            <span className="font-semibold">Location:</span> {displayLocation}
+          </p>
+        </div>
+
+        {/* Buttons Section */}
         <div className="flex flex-wrap gap-2">
           <button
             onClick={onViewDetails}

@@ -307,7 +307,7 @@ function AuthSection({ userType, navigate }) {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="Email address"
+                placeholder={effectiveUserType === "customer" ? "Email address: user1@gmail.com":"Email address: messowner1@gmail.com"}
                 required
                 className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
               />
@@ -320,7 +320,7 @@ function AuthSection({ userType, navigate }) {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder="Password"
+                placeholder={effectiveUserType === "customer" ? "Password: U1234567u@": "Password: M1234567m@"}
                 required
                 className="w-full pl-12 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
               />
@@ -391,7 +391,7 @@ function AuthSection({ userType, navigate }) {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="Email address"
+                placeholder="Email address: user1@gmail.com"
                 required
                 className={`w-full pl-12 pr-4 py-3 bg-gray-50 border ${
                   errors.email ? 'border-red-500' : 'border-gray-200'
