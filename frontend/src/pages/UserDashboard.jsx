@@ -173,15 +173,15 @@ function UserDashboard() {
 
   const handleCancelReservation = async (reservationId, messName, mealType) => {
     const now = new Date();
-    const currentHour = now.getHours();
-    if (mealType === "day" && currentHour >= 11) {
-      toast.error("Cannot cancel lunch reservation after 11 AM.");
-      return;
-    }
-    if (mealType === "night" && currentHour >= 23) {
-      toast.error("Cannot cancel dinner reservation after 7 PM.");
-      return;
-    }
+    // const currentHour = now.getHours();
+    // if (mealType === "day" && currentHour >= 11) {
+    //   toast.error("Cannot cancel lunch reservation after 11 AM.");
+    //   return;
+    // }
+    // if (mealType === "night" && currentHour >= 23) {
+    //   toast.error("Cannot cancel dinner reservation after 7 PM.");
+    //   return;
+    // }
     if (window.confirm(`Are you sure you want to cancel your ${mealType === "day" ? "lunch" : "dinner"} reservation at ${messName}?`)) {
       try {
         await axios.delete(
@@ -483,16 +483,12 @@ function UserDashboard() {
                   </div>
                   <button
                     onClick={() => handleCancelReservation(reservation.reservationId, reservation.messName, reservation.mealType)}
-                    className={`w-full btn-danger text-sm ${
-                      (reservation.mealType === "day" && new Date().getHours() >= 11) ||
-                      (reservation.mealType === "night" && new Date().getHours() >= 23)
-                        ? "opacity-50 cursor-not-allowed"
-                        : ""
-                    }`}
-                    disabled={
-                      (reservation.mealType === "day" && new Date().getHours() >= 11) ||
-                      (reservation.mealType === "night" && new Date().getHours() >= 23)
-                    }
+                    className={`w-full btn-danger text-sm`
+                  }
+                    // disabled={
+                    //   (reservation.mealType === "day" && new Date().getHours() >= 11) ||
+                    //   (reservation.mealType === "night" && new Date().getHours() >= 23)
+                    // }
                   >
                     Cancel Reservation
                   </button>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import { User, Mail, Lock, Phone, Eye, EyeOff, Store } from "lucide-react";
 import axios from "axios";
@@ -7,6 +7,51 @@ import Navbar from "./Navbar";
 function LoginSignupPage() {
   const { userType } = useParams();
   const navigate = useNavigate();
+  const [isTokenChecked, setIsTokenChecked] = useState(false);
+
+  useEffect(() => {
+    const checkToken = async () => {
+      const effectiveUserType = userType || "customer";
+      const endpoint =
+        effectiveUserType === "customer"
+          ? `${import.meta.env.VITE_BASE_URL}/user/auth/me`
+          : `${import.meta.env.VITE_BASE_URL}/messOwner/auth/me`;
+
+      try {
+        const response = await axios.get(endpoint, {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+            "X-XSS-Protection": "1; mode=block",
+            "X-Content-Type-Options": "nosniff",
+          },
+        });
+
+        if (response.status === 200 && response.data.message === "Authorized") {
+          // Token is valid, redirect to appropriate dashboard
+          navigate(
+            effectiveUserType === "customer" ? "/user-dashboard" : "/mess-dashboard"
+          );
+        }
+      } catch (error) {
+        // Token is missing, invalid, or server error; proceed to render login/signup page
+        console.error("Token verification failed:", error);
+      } finally {
+        setIsTokenChecked(true);
+      }
+    };
+
+    checkToken();
+  }, [userType, navigate]);
+
+  // Don't render the page until token check is complete
+  if (!isTokenChecked) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-100 to-purple-50 flex flex-col p-4">
@@ -86,13 +131,12 @@ function AuthSection({ userType, navigate }) {
   };
 
   const validatePhone = (phone) => {
-    // Indian phone number: +91 followed by 10 digits starting with 6, 7, 8, or 9
     const phoneRegex = /^\+91[6-9]\d{9}$/;
     return phoneRegex.test(phone) ? "" : "Please enter a valid Indian phone number (e.g., +91XXXXXXXXXX)";
   };
 
   const validateForm = () => {
-    if (mode === "login") return true; // No validation for login
+    if (mode === "login") return true;
 
     const newErrors = {};
     
@@ -107,11 +151,9 @@ function AuthSection({ userType, navigate }) {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    // Sanitize input
     const sanitizedValue = value.replace(/[<>{}]/g, '');
     setFormData({ ...formData, [name]: sanitizedValue });
     
-    // Real-time validation for signup only
     if (mode === "signup") {
       switch (name) {
         case "email":
@@ -155,8 +197,8 @@ function AuthSection({ userType, navigate }) {
           headers: {
             "Content-Type": "application/json",
             "X-XSS-Protection": "1; mode=block",
-            "X-Content-Type-Options": "nosniff"
-          }
+            "X-Content-Type-Options": "nosniff",
+          },
         }
       );
       navigate(
@@ -165,7 +207,7 @@ function AuthSection({ userType, navigate }) {
     } catch (err) {
       setErrors({
         ...errors,
-        server: err.response?.data?.message || "Login failed. Please try again."
+        server: err.response?.data?.message || "Login failed. Please try again.",
       });
     } finally {
       setLoading(false);
@@ -201,8 +243,8 @@ function AuthSection({ userType, navigate }) {
           headers: {
             "Content-Type": "application/json",
             "X-XSS-Protection": "1; mode=block",
-            "X-Content-Type-Options": "nosniff"
-          }
+            "X-Content-Type-Options": "nosniff",
+          },
         }
       );
 
@@ -212,7 +254,7 @@ function AuthSection({ userType, navigate }) {
     } catch (err) {
       setErrors({
         ...errors,
-        server: err.response?.data?.message || "Signup failed"
+        server: err.response?.data?.message || "Signup failed",
       });
     } finally {
       setLoading(false);
@@ -226,7 +268,7 @@ function AuthSection({ userType, navigate }) {
       color: "blue",
       gradient: "from-blue-500 to-indigo-600",
       bgGradient: "from-blue-50 to-indigo-50",
-      description: "Access your meal reservations and discover local messes"
+      description: "Access your meal reservations and discover local messes",
     },
     messOwner: {
       title: "Mess Owner Portal",
@@ -234,8 +276,8 @@ function AuthSection({ userType, navigate }) {
       color: "orange",
       gradient: "from-orange-500 to-amber-600",
       bgGradient: "from-orange-50 to-amber-50",
-      description: "Manage your mess, menus, and customer orders"
-    }
+      description: "Manage your mess, menus, and customer orders",
+    },
   };
 
   const config = userTypeConfig[effectiveUserType];
@@ -252,9 +294,7 @@ function AuthSection({ userType, navigate }) {
           <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
             {config.title}
           </h1>
-          <p className="text-gray-600 text-sm">
-            {config.description}
-          </p>
+          <p className="text-gray-600 text-sm">{config.description}</p>
         </div>
 
         {/* Mode Toggle */}
@@ -290,10 +330,18 @@ function AuthSection({ userType, navigate }) {
                 <p className="text-sm">{errors.server}</p>
               </div>
             )}
-            {mode === "signup" && errors.email && <p className="text-sm ml-7">{errors.email}</p>}
-            {mode === "signup" && errors.password && <p className="text-sm ml-7">{errors.password}</p>}
-            {mode === "signup" && errors.name && <p className="text-sm ml-7">{errors.name}</p>}
-            {mode === "signup" && errors.phone && <p className="text-sm ml-7">{errors.phone}</p>}
+            {mode === "signup" && errors.email && (
+              <p className="text-sm ml-7">{errors.email}</p>
+            )}
+            {mode === "signup" && errors.password && (
+              <p className="text-sm ml-7">{errors.password}</p>
+            )}
+            {mode === "signup" && errors.name && (
+              <p className="text-sm ml-7">{errors.name}</p>
+            )}
+            {mode === "signup" && errors.phone && (
+              <p className="text-sm ml-7">{errors.phone}</p>
+            )}
           </div>
         )}
 
@@ -307,7 +355,11 @@ function AuthSection({ userType, navigate }) {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder={effectiveUserType === "customer" ? "Email address: user1@gmail.com":"Email address: messowner1@gmail.com"}
+                placeholder={
+                  effectiveUserType === "customer"
+                    ? "Email address: user1@gmail.com"
+                    : "Email address: messowner1@gmail.com"
+                }
                 required
                 className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
               />
@@ -320,7 +372,11 @@ function AuthSection({ userType, navigate }) {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                placeholder={effectiveUserType === "customer" ? "Password: U1234567u@": "Password: M1234567m@"}
+                placeholder={
+                  effectiveUserType === "customer"
+                    ? "Password: U1234567u@"
+                    : "Password: M1234567m@"
+                }
                 required
                 className="w-full pl-12 pr-12 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
               />
@@ -329,7 +385,11 @@ function AuthSection({ userType, navigate }) {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
               >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
               </button>
             </div>
 
@@ -364,7 +424,7 @@ function AuthSection({ userType, navigate }) {
                 }
                 required
                 className={`w-full pl-12 pr-4 py-3 bg-gray-50 border ${
-                  errors.name ? 'border-red-500' : 'border-gray-200'
+                  errors.name ? "border-red-500" : "border-gray-200"
                 } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300`}
               />
             </div>
@@ -379,7 +439,7 @@ function AuthSection({ userType, navigate }) {
                 placeholder="+91XXXXXXXXXX"
                 required
                 className={`w-full pl-12 pr-4 py-3 bg-gray-50 border ${
-                  errors.phone ? 'border-red-500' : 'border-gray-200'
+                  errors.phone ? "border-red-500" : "border-gray-200"
                 } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300`}
               />
             </div>
@@ -394,7 +454,7 @@ function AuthSection({ userType, navigate }) {
                 placeholder="Email address: user1@gmail.com"
                 required
                 className={`w-full pl-12 pr-4 py-3 bg-gray-50 border ${
-                  errors.email ? 'border-red-500' : 'border-gray-200'
+                  errors.email ? "border-red-500" : "border-gray-200"
                 } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300`}
               />
             </div>
@@ -409,7 +469,7 @@ function AuthSection({ userType, navigate }) {
                 placeholder="Password"
                 required
                 className={`w-full pl-12 pr-12 py-3 bg-gray-50 border ${
-                  errors.password ? 'border-red-500' : 'border-gray-200'
+                  errors.password ? "border-red-500" : "border-gray-200"
                 } rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300`}
               />
               <button
@@ -417,7 +477,11 @@ function AuthSection({ userType, navigate }) {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
               >
-                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                {showPassword ? (
+                  <EyeOff className="w-5 h-5" />
+                ) : (
+                  <Eye className="w-5 h-5" />
+                )}
               </button>
             </div>
 

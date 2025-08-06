@@ -62,7 +62,6 @@ messRouter.get("/owner/messes", authenticateOwner, async (req, res) => {
   }
 });
 
-
 messRouter.get("/nearby", authenticateUser, async (req, res) => {
   try {
     const { lat, lng } = req.query;
@@ -335,7 +334,6 @@ messRouter.post('/attend/:messId/day', authenticateUser, async (req, res) => {
   }
 });
 
-
 messRouter.post('/attend/:messId/night', authenticateUser, async (req, res) => {
   try {
     const { messId } = req.params;
@@ -416,8 +414,6 @@ messRouter.post('/attend/:messId/night', authenticateUser, async (req, res) => {
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
-
-
 
 messRouter.get('/:messId/today-attendance', authenticateOwner, async (req, res) => {
   try {
