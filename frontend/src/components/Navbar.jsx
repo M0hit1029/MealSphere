@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Menu, User, X } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Menu, User } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 
 const scrollToSection = (sectionId) => {
   const element = document.getElementById(sectionId);
@@ -15,6 +15,8 @@ const scrollToSection = (sectionId) => {
 const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -24,6 +26,28 @@ const Navbar = () => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Handle scrolling after navigation to homepage
+  useEffect(() => {
+    const { sectionId } = location.state || {};
+    if (location.pathname === '/' && sectionId) {
+      // Delay scroll to ensure DOM is fully loaded
+      setTimeout(() => {
+        scrollToSection(sectionId);
+      }, 100);
+    }
+  }, [location]);
+
+  const handleNavClick = (sectionId) => {
+    if (location.pathname !== '/') {
+      // Redirect to homepage with sectionId in state
+      navigate('/', { state: { sectionId } });
+    } else {
+      // Scroll directly if already on homepage
+      scrollToSection(sectionId);
+    }
+    setIsMenuOpen(false);
+  };
 
   return (
     <nav
@@ -48,16 +72,16 @@ const Navbar = () => {
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-6">
-          <NavButton onClick={() => scrollToSection('home')}>
+          <NavButton onClick={() => handleNavClick('home')}>
             Home
           </NavButton>
-          <NavButton onClick={() => scrollToSection('about-section')}>
+          <NavButton onClick={() => handleNavClick('about-section')}>
             About
           </NavButton>
-          <NavButton onClick={() => scrollToSection('features')}>
+          <NavButton onClick={() => handleNavClick('features')}>
             Features
           </NavButton>
-          <NavButton onClick={() => scrollToSection('contact')}>
+          <NavButton onClick={() => handleNavClick('contact')}>
             Contact
           </NavButton>
           
@@ -77,7 +101,11 @@ const Navbar = () => {
           className="md:hidden p-3 rounded-full text-gray-700 hover:bg-gray-100 transition-all duration-300 relative"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
-          <Menu size={24} className={`transition-transform duration-300 ${isMenuOpen ? 'rotate-90' : ''}`} />
+          {isMenuOpen ? (
+            <X size={24} className="transition-transform duration-300" />
+          ) : (
+            <Menu size={24} className="transition-transform duration-300" />
+          )}
           {isMenuOpen && (
             <div className="absolute inset-0 bg-amber-500/20 rounded-full animate-ping"></div>
           )}
@@ -94,16 +122,16 @@ const Navbar = () => {
       >
         <div className="bg-white/95 backdrop-blur-lg shadow-2xl border-t border-gray-200/50">
           <div className="flex flex-col p-6 space-y-4">
-            <MobileNavLink onClick={() => { scrollToSection('home'); setIsMenuOpen(false); }}>
+            <MobileNavLink onClick={() => handleNavClick('home')}>
               Home
             </MobileNavLink>
-            <MobileNavLink onClick={() => { scrollToSection('about-section'); setIsMenuOpen(false); }}>
+            <MobileNavLink onClick={() => handleNavClick('about-section')}>
               About
             </MobileNavLink>
-            <MobileNavLink onClick={() => { scrollToSection('features'); setIsMenuOpen(false); }}>
+            <MobileNavLink onClick={() => handleNavClick('features')}>
               Features
             </MobileNavLink>
-            <MobileNavLink onClick={() => { scrollToSection('contact'); setIsMenuOpen(false); }}>
+            <MobileNavLink onClick={() => handleNavClick('contact')}>
               Contact
             </MobileNavLink>
             
