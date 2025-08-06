@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Menu, LogOut, Home, MessageCircle, Settings,AppWindow } from "lucide-react";
+import { Menu, LogOut, Home, MessageCircle, Settings, AppWindow } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -31,7 +31,7 @@ const MessDashboardNavbar = () => {
       );
 
       if (response.status === 200) {
-        navigate('/login-signup/messOwner');
+        navigate('/login-signup/messOwner', { state: { fromLogout: true } });
       } else {
         console.error('Logout failed:', response.statusText);
       }

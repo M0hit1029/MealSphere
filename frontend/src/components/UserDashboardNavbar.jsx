@@ -31,7 +31,7 @@ const UserDashboardNavbar = () => {
       );
 
       if (response.status === 200) {
-        navigate('/login-signup/customer');
+        navigate('/login-signup/customer', { state: { fromLogout: true } });
       } else {
         console.error('Logout failed:', response.statusText);
       }

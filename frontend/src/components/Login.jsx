@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link, useParams, useNavigate } from "react-router-dom";
+import { Link, useParams, useNavigate, useLocation } from "react-router-dom";
 import { User, Mail, Lock, Phone, Eye, EyeOff, Store } from "lucide-react";
 import axios from "axios";
 import Navbar from "./Navbar";
@@ -7,6 +7,7 @@ import Navbar from "./Navbar";
 function LoginSignupPage() {
   const { userType } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isTokenChecked, setIsTokenChecked] = useState(false);
 
   useEffect(() => {
@@ -28,23 +29,26 @@ function LoginSignupPage() {
         });
 
         if (response.status === 200 && response.data.message === "Authorized") {
-          // Token is valid, redirect to appropriate dashboard
           navigate(
             effectiveUserType === "customer" ? "/user-dashboard" : "/mess-dashboard"
           );
         }
       } catch (error) {
-        // Token is missing, invalid, or server error; proceed to render login/signup page
         console.error("Token verification failed:", error);
       } finally {
         setIsTokenChecked(true);
       }
     };
 
-    checkToken();
-  }, [userType, navigate]);
+    // Skip token check if navigating from logout
+    const { fromLogout } = location.state || {};
+    if (fromLogout) {
+      setIsTokenChecked(true);
+    } else {
+      checkToken();
+    }
+  }, [userType, navigate, location]);
 
-  // Don't render the page until token check is complete
   if (!isTokenChecked) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -55,7 +59,6 @@ function LoginSignupPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-100 to-purple-50 flex flex-col p-4">
-      {/* Background Pattern */}
       <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22 viewBox=%220 0 100 100%22%3E%3Cg fill=%22%239C92AC%22 fill-opacity=%220.1%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2250%22/%3E%3C/g%3E%3C/svg%3E')] opacity-30"></div>
 
       <Navbar />
@@ -80,10 +83,8 @@ function AuthSection({ userType, navigate }) {
 
   const effectiveUserType = userType || "customer";
 
-  // Base URL
   const BASE_URL = import.meta.env.VITE_BASE_URL;
 
-  // Determine endpoint based on user type
   const API_ENDPOINTS = {
     customer: {
       login: `${BASE_URL}/user/login`,
@@ -95,7 +96,6 @@ function AuthSection({ userType, navigate }) {
     },
   };
 
-  // Validation functions for signup only
   const validateEmail = (email) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email) ? "" : "Please enter a valid email address";
@@ -286,7 +286,6 @@ function AuthSection({ userType, navigate }) {
   return (
     <div className="w-full max-w-md mx-auto animate-fadeIn">
       <div className="card p-8 relative overflow-hidden">
-        {/* Header */}
         <div className="text-center mb-8">
           <div className={`w-20 h-20 bg-gradient-to-r ${config.gradient} rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg`}>
             <IconComponent className="w-10 h-10 text-white" />
@@ -297,7 +296,6 @@ function AuthSection({ userType, navigate }) {
           <p className="text-gray-600 text-sm">{config.description}</p>
         </div>
 
-        {/* Mode Toggle */}
         <div className="flex bg-gray-100 rounded-lg p-1 mb-6">
           <button
             onClick={() => setMode("login")}
@@ -321,7 +319,6 @@ function AuthSection({ userType, navigate }) {
           </button>
         </div>
 
-        {/* Error Messages */}
         {Object.values(errors).some(error => error) && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 animate-slideUp">
             {errors.server && (
@@ -345,7 +342,6 @@ function AuthSection({ userType, navigate }) {
           </div>
         )}
 
-        {/* Forms */}
         {mode === "login" ? (
           <form onSubmit={handleLogin} className="space-y-6" noValidate>
             <div className="relative">
@@ -502,7 +498,6 @@ function AuthSection({ userType, navigate }) {
           </form>
         )}
 
-        {/* Footer */}
         <div className="mt-8 text-center">
           <Link
             to="/"
