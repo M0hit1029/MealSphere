@@ -64,9 +64,14 @@ userRouter.post("/login", async (req, res) => {
 });
 
 userRouter.post("/logout", (req, res) => {
-  res.clearCookie("userToken");
+  res.clearCookie("userToken", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+  });
   res.json({ message: "Logged out successfully" });
 });
+
 
 userRouter.get("/auth/me", async (req, res) => {
   try {

@@ -98,10 +98,14 @@ messOwnerRouter.get('/auth/me', async (req,res)=>{
     }
 })
 
-messOwnerRouter.post("/logout",(req,res)=>{
-    res.clearCookie('messToken');
-    res.status(200).json({message:'Logged out successfully'});
-})
+messOwnerRouter.post("/logout", (req, res) => {
+  res.clearCookie("messToken", {
+    httpOnly: true,
+    secure: true,
+    sameSite: "None",
+  });
+  res.status(200).json({ message: "Logged out successfully" });
+});
 
 messOwnerRouter.get("/:messId/members", messOwnerAuth, async (req, res) => {
   try {
