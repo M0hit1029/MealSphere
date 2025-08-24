@@ -521,7 +521,7 @@ messRouter.get('/:messId/user-attendance/:userId', authenticateOwner, async (req
   }
 });
 
-messRouter.post('/updateAttendance',async (req,res)=>{
+messRouter.all('/updateAttendance',async (req,res)=>{
    await updateAttendance();
     res.send('Attendance updated');
 })
