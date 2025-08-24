@@ -5,6 +5,7 @@ const enrollmentSchema = require("../models/enrollmentSchema")
 const reservationSchema = require("../models/reservationSchema")
 const authenticateOwner = require("../middlewares/messOwnerAuth"); // Middleware to verify token
 const authenticateUser = require("../middlewares/userAuth"); // User authentication middleware
+const updateAttendance = require("../cron/markAttendance");
 const messRouter = express.Router();
 const multer = require("multer");
 const path = require("path");
@@ -520,6 +521,9 @@ messRouter.get('/:messId/user-attendance/:userId', authenticateOwner, async (req
   }
 });
 
-
+messRouter.post('/updateAttendance',async (req,res)=>{
+   await updateAttendance();
+    res.send('Attendance updated');
+})
 
 module.exports = messRouter;

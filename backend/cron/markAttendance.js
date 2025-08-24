@@ -1,4 +1,3 @@
-const cron = require('node-cron');
 const mongoose = require('mongoose');
 const Enrollment = require('../models/enrollmentSchema');
 const Reservation = require('../models/reservationSchema');
@@ -54,7 +53,4 @@ async function updateAttendance() {
   }
 }
 
-cron.schedule('0 0 * * *', () => {
-  console.log('Running daily attendance update...');
-  updateAttendance();
-});
+module.exports = updateAttendance;  

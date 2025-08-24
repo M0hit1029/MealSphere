@@ -10,7 +10,11 @@ const messSchema = new mongoose.Schema(
   {
     name: { type: String, required: true },
     address: { type: String, required: true },
-    image: {type:String,default:"https://res.cloudinary.com/dz1qj3x7h/image/upload/v1735681234/MealSphere/messDefaultImage.png"},
+    image: {
+      type: String,
+      default:
+        "https://res.cloudinary.com/dz1qj3x7h/image/upload/v1735681234/MealSphere/messDefaultImage.png",
+    },
     liveLocation: {
       type: { type: String, enum: ['Point'], default: 'Point' },
       coordinates: { type: [Number], required: true }, // [longitude, latitude]
@@ -41,10 +45,17 @@ const messSchema = new mongoose.Schema(
 // Create 2dsphere index for location-based queries
 messSchema.index({ liveLocation: '2dsphere' });
 
+const Mess = mongoose.model('Mess', messSchema);
+
+// Cron job to reset attendingToday counts
 const schedule = require('node-schedule');
 schedule.scheduleJob('0 0 * * *', async () => {
-  await mongoose.model('Mess').updateMany({}, { attendingTodayDay: 0 },{attendingTodayNight: 0});
-  console.log('✅ Reset attendingToday count for all messes');
+  try {
+    await Mess.updateMany({}, { attendingTodayDay: 0, attendingTodayNight: 0 });
+    console.log('Reset attendingToday count for all messes');
+  } catch (err) {
+    console.error('Error resetting attendingToday counts:', err);
+  }
 });
 
-module.exports = mongoose.model('Mess', messSchema);
+module.exports = Mess;
