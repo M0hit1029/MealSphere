@@ -61,7 +61,6 @@ Follow these steps to run MealSphere locally:
 ## 🔗 Live Demo
 
 - 🌐 [View Website](https://meal-sphere-psi.vercel.app)
-- 💻 [GitHub Repository](https://github.com/M0hit1029/MealSphere)
 
 ---
 
