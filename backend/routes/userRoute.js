@@ -186,7 +186,6 @@ userRouter.post("/reserve", [userAuth, reservationAuth], async (req, res) => {
   }
 });
 
-// Fetch today's reservations
 userRouter.get("/reservations/today", [userAuth], async (req, res) => {
   try {
     const userId = req.userId;
@@ -228,7 +227,6 @@ userRouter.get("/reservations/today", [userAuth], async (req, res) => {
   }
 });
 
-// Cancel a reservation
 userRouter.delete(
   "/reservations/cancel/:reservationId",
   [userAuth],

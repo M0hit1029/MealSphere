@@ -41,10 +41,6 @@ const messSchema = new mongoose.Schema(
 // Create 2dsphere index for location-based queries
 messSchema.index({ liveLocation: '2dsphere' });
 
-/**
- * Optional: Reset attendingToday count every day at midnight
- * (Only if you are tracking attendance count separately)
- */
 const schedule = require('node-schedule');
 schedule.scheduleJob('0 0 * * *', async () => {
   await mongoose.model('Mess').updateMany({}, { attendingTodayDay: 0 },{attendingTodayNight: 0});

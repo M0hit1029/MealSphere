@@ -22,19 +22,18 @@ const reservationSchema = new mongoose.Schema({
     required: true,
   }
 }, {
-  timestamps: true // adds createdAt and updatedAt fields
+  timestamps: true 
 });
 
-const Reservation = mongoose.model('Reservation', reservationSchema); // ✅ Declare model first
+const Reservation = mongoose.model('Reservation', reservationSchema);
 
-// ✅ Daily cleanup cron job for expired reservations
 cron.schedule('0 0 * * *', async () => {
   try {
     const today = new Date();
-    today.setHours(0, 0, 0, 0); // midnight
+    today.setHours(0, 0, 0, 0); 
 
     const result = await Reservation.deleteMany({
-      date: { $lt: today } // delete reservations from past days
+      date: { $lt: today }
     });
 
     console.log(`[CLEANUP] Deleted ${result.deletedCount} outdated reservations.`);
