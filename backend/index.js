@@ -12,6 +12,9 @@ require('./cron/removeOldMembers'); // ✅ Cron job will auto start
 app.use(cors({ origin: ["https://meal-sphere-psi.vercel.app", "http://localhost:5173"], credentials: true }));
 app.use(express.json());
 app.use(cookieParser())
+app.get('/', (req, res) => {
+  res.send('Welcome to MealSphere API');
+});
 app.use('/api/v1/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/v1/user', userRouter);
 app.use('/api/v1/messOwner', messOwnerRouter);
