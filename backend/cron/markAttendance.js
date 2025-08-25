@@ -19,7 +19,7 @@ async function updateAttendance() {
       if (!reservationMap[r.userId]) reservationMap[r.userId] = [];
       reservationMap[r.userId].push(r);
     });
-
+    
     const enrollments = await Enrollment.find({});
     const bulkOps = enrollments.map((enrollment) => {
       const userReservations = reservationMap[enrollment.userId] || [];
