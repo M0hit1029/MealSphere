@@ -526,7 +526,7 @@ messRouter.get('/:messId/user-attendance/:userId', authenticateOwner, async (req
 
 messRouter.post('/updateAttendance',async (req,res)=>{
   const {apikey} = req.body;
-
+  //console.log(apikey, process.env.API_KEY_UPDATE_ATTENDANCE);
   if (apikey !== process.env.API_KEY_UPDATE_ATTENDANCE) {
     return res.status(403).json({ message: 'Forbidden' });
   }

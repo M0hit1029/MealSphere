@@ -6,6 +6,7 @@ const cookieParser = require('cookie-parser');
 const userRouter = require('./routes/userRoute');
 const messOwnerRouter = require('./routes/messOwnerRoute');
 const messRouter = require('./routes/messRoute');
+const jobRouter = require('./routes/jobRouter')
 const path = require('path');
 require('./cron/removeOldMembers'); // ✅ Cron job will auto start
 
@@ -19,6 +20,7 @@ app.use('/api/v1/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/v1/user', userRouter);
 app.use('/api/v1/messOwner', messOwnerRouter);
 app.use('/api/v1/mess', messRouter);
+app.use('/api/v1/job', jobRouter);
 
 const startServer = async () => {
   try {
