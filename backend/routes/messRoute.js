@@ -6,6 +6,7 @@ const reservationSchema = require("../models/reservationSchema")
 const authenticateOwner = require("../middlewares/messOwnerAuth"); // Middleware to verify token
 const authenticateUser = require("../middlewares/userAuth"); // User authentication middleware
 const updateAttendance = require("../cron/markAttendance");
+const dotenv = require('dotenv');
 const messRouter = express.Router();
 const multer = require("multer");
 const path = require("path");
@@ -20,6 +21,8 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({ storage });
+
+dotenv.config();
 
 messRouter.post("/register", authenticateOwner, upload.single('image'), async (req, res) => {
   try {
