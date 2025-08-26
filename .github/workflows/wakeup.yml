@@ -2,9 +2,9 @@ name: Wake Render
 
 on:
   schedule:
-    - cron: "3 6 * * *"
-    - cron: "13 6 * * *"
-    - cron: "15,30,45 6 * * *"
+    - cron: "3 6 * * *" ## this is a warmup call
+    - cron: "13 6 * * *" ## this is my second warmup call , (trust issues man)
+    - cron: "15,30,45 6 * * *" ## at 11:45, 12:00, 12:15 IST
 
 jobs:
   ping:
