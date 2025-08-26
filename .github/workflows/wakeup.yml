@@ -1,8 +1,10 @@
-name: Test Ping
+name: Wake Render
 
 on:
   schedule:
-    - cron: "*/5 * * * *"   # every 5 minutes (UTC)
+    - cron: "3 6 * * *"
+    - cron: "13 6 * * *"
+    - cron: "15,30,45 6 * * *"
 
 jobs:
   ping:
