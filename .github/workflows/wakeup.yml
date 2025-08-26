@@ -1,14 +1,14 @@
-name: Render Wake Up (Test)
+name: Test Ping
 
 on:
   schedule:
-    - cron: "30 20 * * *" 
-  workflow_dispatch:
+    - cron: "*/5 * * * *"   # every 5 minutes (UTC)
 
 jobs:
-  wakeup:
+  ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Ping Render App
-        run: |
-          curl --retry 3 --retry-delay 30 --max-time 30 https://mealsphere.onrender.com/
+      - name: Print Time
+        run: date
+      - name: Curl
+        run: curl -s https://your-app.onrender.com/health || true
