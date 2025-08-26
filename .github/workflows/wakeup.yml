@@ -11,4 +11,4 @@ jobs:
       - name: Print Time
         run: date
       - name: Curl
-        run: curl -s https://your-app.onrender.com/health || true
+        run: curl -s https://mealsphere.onrender.com || true
