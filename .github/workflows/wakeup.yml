@@ -2,15 +2,18 @@ name: Wake Render
 
 on:
   schedule:
-    - cron: "3 6 * * *" ## this is a warmup call
-    - cron: "13 6 * * *" ## this is my second warmup call , (trust issues man)
-    - cron: "15,30,45 6 * * *" ## at 11:45, 12:00, 12:15 IST
+    - cron: "0 18 * * *"     ## 11:30 PM IST ## first start time
+    - cron: "15 18 * * *"    ## 11:45 PM IST ##again a wake up call to render (trust issues man)
+    - cron: "30 18 * * *"    ## 12:00 AM IST
+    - cron: "45 18 * * *"    ## 12:15 AM IST
 
 jobs:
   ping:
     runs-on: ubuntu-latest
     steps:
-      - name: Print Time
-        run: date
-      - name: Curl
+      - name: Print Time (UTC)
+        run: date -u
+      - name: Print Time (IST)
+        run: TZ=Asia/Kolkata date
+      - name: Curl Warmup
         run: curl -s https://mealsphere.onrender.com || true
