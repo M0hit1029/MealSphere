@@ -1,31 +1,27 @@
-const mongoose = require('mongoose');
-const Enrollment = require('../models/enrollmentSchema');
-const Reservation = require('../models/reservationSchema');
-require('dotenv').config();
-
-mongoose.connect(process.env.MONGO_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
+const moment = require("moment-timezone");
 
 async function updateAttendance() {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Get today’s date in IST
+    const todayIST = moment().tz("Asia/Kolkata").startOf("day").toDate();
 
-    const reservations = await Reservation.find({ date: today });
+    const reservations = await Reservation.find({ date: todayIST });
     const reservationMap = {};
     reservations.forEach((r) => {
       if (!reservationMap[r.userId]) reservationMap[r.userId] = [];
       reservationMap[r.userId].push(r);
     });
-    
+
     const enrollments = await Enrollment.find({});
     const bulkOps = enrollments.map((enrollment) => {
       const userReservations = reservationMap[enrollment.userId] || [];
-      const reservation = userReservations.find(r => r.messId.toString() === enrollment.messId.toString());
-      const attendedDay = reservation && (reservation.mealType === 'day' || reservation.mealType === 'both');
-      const attendedNight = reservation && (reservation.mealType === 'night' || reservation.mealType === 'both');
+      const reservation = userReservations.find(
+        (r) => r.messId.toString() === enrollment.messId.toString()
+      );
+      const attendedDay =
+        reservation && (reservation.mealType === "day" || reservation.mealType === "both");
+      const attendedNight =
+        reservation && (reservation.mealType === "night" || reservation.mealType === "both");
 
       return {
         updateOne: {
@@ -33,7 +29,7 @@ async function updateAttendance() {
           update: {
             $push: {
               attendance: {
-                date: today,
+                date: todayIST,
                 attendedDay: attendedDay || false,
                 attendedNight: attendedNight || false,
               },
@@ -47,10 +43,8 @@ async function updateAttendance() {
       await Enrollment.bulkWrite(bulkOps);
     }
 
-    console.log('Daily attendance update complete');
+    console.log("Daily attendance update complete");
   } catch (err) {
-    console.error('Error during daily attendance update:', err);
+    console.error("Error during daily attendance update:", err);
   }
 }
-
-module.exports = updateAttendance;  
