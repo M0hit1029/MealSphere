@@ -1,8 +1,10 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const job = express.Router();
-const dotenv = require('dotenv');
+const dotenv = require("dotenv");
+const moment = require("moment-timezone");
 dotenv.config();
+
 const Reservation = require("../models/reservationSchema");
 const Enrollment = require("../models/enrollmentSchema"); // assuming this exists
 
@@ -13,21 +15,24 @@ job.post("/generateReservations", async (req, res) => {
   }
 
   try {
-    const today = new Date();
-    today.setUTCHours(0, 0, 0, 0);
+    // 🔑 Always use IST date (start of day in IST)
+    const todayIST = moment().tz("Asia/Kolkata").startOf("day").toDate();
 
-    const excludedUserId = new mongoose.Types.ObjectId("6888c8ea36edd3574bd05b03");
+    const excludedUserId = new mongoose.Types.ObjectId(
+      "6888c8ea36edd3574bd05b03"
+    );
 
     const enrollments = await Enrollment.find({
       isAccepted: true,
-      userId: { $ne: excludedUserId }
+      userId: { $ne: excludedUserId },
     });
 
     const mealOptions = ["day", "night", "both", "none"];
     const reservations = [];
 
     for (const enroll of enrollments) {
-      const choice = mealOptions[Math.floor(Math.random() * mealOptions.length)];
+      const choice =
+        mealOptions[Math.floor(Math.random() * mealOptions.length)];
 
       if (choice === "none") continue;
 
@@ -35,35 +40,34 @@ job.post("/generateReservations", async (req, res) => {
         reservations.push({
           userId: enroll.userId,
           messId: enroll.messId,
-          date: today,
+          date: todayIST, // ✅ always IST
           mealType: "day",
         });
         reservations.push({
           userId: enroll.userId,
           messId: enroll.messId,
-          date: today,
+          date: todayIST, // ✅ always IST
           mealType: "night",
         });
       } else {
         reservations.push({
           userId: enroll.userId,
           messId: enroll.messId,
-          date: today,
+          date: todayIST, // ✅ always IST
           mealType: choice,
         });
       }
     }
 
-    // ✅ Avoid duplicates: remove any existing reservations for today
-    await Reservation.deleteMany({ date: today });
+    // ✅ Delete only IST-based reservations for today
+    await Reservation.deleteMany({ date: todayIST });
 
-    // Insert new reservations
     if (reservations.length > 0) {
       await Reservation.insertMany(reservations);
     }
 
     res.json({
-      message: "Reservations generated for today",
+      message: "Reservations generated for today (IST)",
       count: reservations.length,
     });
   } catch (error) {
