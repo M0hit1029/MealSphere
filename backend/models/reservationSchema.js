@@ -27,19 +27,28 @@ const reservationSchema = new mongoose.Schema({
 
 const Reservation = mongoose.model('Reservation', reservationSchema);
 
+reservationSchema.pre('save', function (next) {
+  if (this.date) {
+    this.date = moment(this.date).tz("Asia/Kolkata").startOf("day").toDate();
+  } else {
+    // If no date provided, default to today in IST
+    this.date = moment().tz("Asia/Kolkata").startOf("day").toDate();
+  }
+  next();
+});
+
 cron.schedule('0 0 * * *', async () => {
   try {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); 
+    const todayIST = moment().tz("Asia/Kolkata").startOf("day").toDate();
 
     const result = await Reservation.deleteMany({
-      date: { $lt: today }
+      date: { $lt: todayIST }
     });
 
     console.log(`[CLEANUP] Deleted ${result.deletedCount} outdated reservations.`);
   } catch (error) {
     console.error('[CLEANUP ERROR] Failed to clean up reservations:', error);
   }
-}, { timezone: 'UTC' });
+}, { timezone: 'Asia/Kolkata' });
 
 module.exports = Reservation;
