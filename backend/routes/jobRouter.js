@@ -16,7 +16,6 @@ job.post("/generateReservations", async (req, res) => {
     const today = new Date();
     today.setUTCHours(0, 0, 0, 0);
 
-    // Exclude the specific user
     const excludedUserId = new mongoose.Types.ObjectId("6888c8ea36edd3574bd05b03");
 
     const enrollments = await Enrollment.find({

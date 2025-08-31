@@ -1,12 +1,10 @@
 const schedule = require('node-schedule');
 const Enrollment = require('../models/enrollmentSchema');
 
-// Runs every day at midnight
 schedule.scheduleJob('0 0 * * *', async () => {
   try {
     const today = new Date();
 
-    // Find all enrollments
     const enrollments = await Enrollment.find({});
 
     for (const enrollment of enrollments) {
@@ -19,8 +17,8 @@ schedule.scheduleJob('0 0 * * *', async () => {
       }
     }
 
-    console.log('✅ Daily cleanup of old enrollments complete');
+    console.log('Daily cleanup of old enrollments complete');
   } catch (err) {
-    console.error('❌ Error during enrollment cleanup:', err);
+    console.error('Error during enrollment cleanup:', err);
   }
 });

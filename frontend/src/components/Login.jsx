@@ -353,7 +353,7 @@ function AuthSection({ userType, navigate }) {
                 onChange={handleChange}
                 placeholder={
                   effectiveUserType === "customer"
-                    ? "Email address: user1@gmail.com"
+                    ? "Email address: user3@gmail.com"
                     : "Email address: messowner1@gmail.com"
                 }
                 required
@@ -447,7 +447,7 @@ function AuthSection({ userType, navigate }) {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="Email address: user1@gmail.com"
+                placeholder="Email address: user3@gmail.com"
                 required
                 className={`w-full pl-12 pr-4 py-3 bg-gray-50 border ${
                   errors.email ? "border-red-500" : "border-gray-200"
