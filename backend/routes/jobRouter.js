@@ -27,8 +27,12 @@ job.post("/generateReservations", async (req, res) => {
   try {
     const { startOfDay, endOfDay } = getISTDayRange();
 
+    // User to exclude while generating reservations
+    const excludedUserId = new mongoose.Types.ObjectId("6888c8ea36edd3574bd05b03");
+
     const enrollments = await Enrollment.find({
       isAccepted: true,
+      userId: { $ne: excludedUserId }, // exclude this user
     });
 
     const mealOptions = ["day", "night", "both", "none"];
