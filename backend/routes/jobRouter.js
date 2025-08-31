@@ -16,6 +16,7 @@ const getISTDayRange = () => {
   return { startOfDay, endOfDay };
 };
 
+// POST: Generate reservations
 job.post("/generateReservations", async (req, res) => {
   const { apikey } = req.body;
 
@@ -26,11 +27,8 @@ job.post("/generateReservations", async (req, res) => {
   try {
     const { startOfDay, endOfDay } = getISTDayRange();
 
-    const excludedUserId = new mongoose.Types.ObjectId("6888c8ea36edd3574bd05b03");
-
     const enrollments = await Enrollment.find({
       isAccepted: true,
-      userId: { $ne: excludedUserId },
     });
 
     const mealOptions = ["day", "night", "both", "none"];
@@ -64,6 +62,26 @@ job.post("/generateReservations", async (req, res) => {
     });
   } catch (error) {
     console.error("[RESERVATION ERROR] Failed to generate:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// DELETE: Remove all reservations
+job.delete("/deleteReservations", async (req, res) => {
+  const { apikey } = req.body;
+
+  if (apikey !== process.env.API_KEY_UPDATE_ATTENDANCE) {
+    return res.status(403).json({ message: "Forbidden" });
+  }
+
+  try {
+    const result = await Reservation.deleteMany({});
+    res.json({
+      message: "All reservations deleted successfully",
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    console.error("[RESERVATION ERROR] Failed to delete:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
