@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const jwt = require("jsonwebtoken");
 const cookieParser = require("cookie-parser");
+const moment = require("moment-timezone"); // added
 const userRouter = express.Router();
 const userModel = require("../models/userSchema");
 const reservationModel = require("../models/reservationSchema");
@@ -72,7 +73,6 @@ userRouter.post("/logout", (req, res) => {
   res.json({ message: "Logged out successfully" });
 });
 
-
 userRouter.get("/auth/me", async (req, res) => {
   try {
     const token = req.cookies.userToken;
@@ -93,7 +93,6 @@ userRouter.get("/auth/me", async (req, res) => {
 userRouter.post("/reserve", [userAuth, reservationAuth], async (req, res) => {
   try {
     const { messId, mealType } = req.body;
-
     if (!messId || !mealType) {
       return res
         .status(400)
@@ -112,20 +111,21 @@ userRouter.post("/reserve", [userAuth, reservationAuth], async (req, res) => {
         .json({ message: "Only daily users can reserve a mess" });
     }
 
-    const now = new Date();
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // IST-aware start and end of today
+    const startOfDayIST = moment().tz("Asia/Kolkata").startOf("day").toDate();
+    const endOfDayIST = moment().tz("Asia/Kolkata").endOf("day").toDate();
 
     const enrolled = await enrollmentSchema.findOne({
       userId: req.userId,
       isAccepted: true,
     });
+
     if (enrolled && enrolled.messId.toString() !== messId) {
       // Check if already booked in enrolled mess
       const existing = await reservationModel.findOne({
         userId: req.userId,
         messId: enrolled.messId,
-        date: today,
+        date: { $gte: startOfDayIST, $lte: endOfDayIST },
       });
       if (existing && existing.mealType === mealType) {
         return res.status(400).json({
@@ -145,7 +145,9 @@ userRouter.post("/reserve", [userAuth, reservationAuth], async (req, res) => {
 
       // Update absentee in enrollment.attendance
       const attendanceToday = enrolled.attendance.find(
-        (a) => new Date(a.date).toDateString() === today.toDateString()
+        (a) =>
+          moment(a.date).tz("Asia/Kolkata").format("YYYY-MM-DD") ===
+          moment().tz("Asia/Kolkata").format("YYYY-MM-DD")
       );
 
       if (attendanceToday) {
@@ -153,12 +155,11 @@ userRouter.post("/reserve", [userAuth, reservationAuth], async (req, res) => {
         else attendanceToday.attendedNight = false;
       } else {
         enrolled.attendance.push({
-          date: today,
+          date: startOfDayIST,
           attendedDay: mealType === "day" ? false : null,
           attendedNight: mealType === "night" ? false : null,
         });
       }
-
       await enrolled.save();
     }
 
@@ -174,8 +175,9 @@ userRouter.post("/reserve", [userAuth, reservationAuth], async (req, res) => {
       userId: req.userId,
       messId,
       mealType,
-      date: today,
+      date: startOfDayIST,
     });
+
     res.status(200).json({
       message: "Mess reserved successfully",
       reservation,
@@ -189,16 +191,13 @@ userRouter.post("/reserve", [userAuth, reservationAuth], async (req, res) => {
 userRouter.get("/reservations/today", [userAuth], async (req, res) => {
   try {
     const userId = req.userId;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const startOfDayIST = moment().tz("Asia/Kolkata").startOf("day").toDate();
+    const endOfDayIST = moment().tz("Asia/Kolkata").endOf("day").toDate();
 
     const reservations = await reservationModel
       .find({
         userId,
-        date: {
-          $gte: today,
-          $lt: new Date(today.getTime() + 24 * 60 * 60 * 1000),
-        },
+        date: { $gte: startOfDayIST, $lte: endOfDayIST },
       })
       .populate("messId", "name address menu");
 
@@ -250,41 +249,33 @@ userRouter.delete(
           .json({ message: "Reservation not found or not owned by user" });
       }
 
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const reservationDate = new Date(reservation.date);
-      reservationDate.setHours(0, 0, 0, 0);
+      const startOfDayIST = moment().tz("Asia/Kolkata").startOf("day").toDate();
+      const reservationDate = moment(reservation.date).tz("Asia/Kolkata").startOf("day").toDate();
 
-      if (reservationDate.getTime() !== today.getTime()) {
+      if (reservationDate.getTime() !== startOfDayIST.getTime()) {
         return res
           .status(403)
           .json({ message: "Can only cancel today's reservations" });
       }
 
-      // Check time restrictions for cancellation
-      const now = new Date();
-      // if (reservation.mealType === 'day' && now.getHours() >= 11) {
-      //   return res.status(403).json({ message: 'Cannot cancel day meal reservation after 9 AM' });
-      // }
-      // if (reservation.mealType === 'night' && now.getHours() >= 19) {
-      //   return res.status(403).json({ message: 'Cannot cancel night meal reservation after 6 PM' });
-      // }
+      // Update enrollment attendance if any
       const enrolledOne = await enrollmentSchema.findOne({
         userId,
         isAccepted: true,
       });
       if (enrolledOne) {
         enrolledOne.attendance.forEach((att) => {
-          if (att.date.toDateString() === today.toDateString()) {
-            if (reservation.mealType === "day") {
-              att.attendedDay = false;
-            } else if (reservation.mealType === "night") {
-              att.attendedNight = false;
-            }
+          if (
+            moment(att.date).tz("Asia/Kolkata").format("YYYY-MM-DD") ===
+            moment().tz("Asia/Kolkata").format("YYYY-MM-DD")
+          ) {
+            if (reservation.mealType === "day") att.attendedDay = false;
+            else if (reservation.mealType === "night") att.attendedNight = false;
           }
         });
-        await enrolledOne.save(); 
+        await enrolledOne.save();
       }
+
       await reservationModel.deleteOne({ _id: reservationId });
 
       res.status(200).json({
@@ -298,9 +289,10 @@ userRouter.delete(
   }
 );
 
-userRouter.get("/profile",[userAuth],async(rea,res)=>{
-  try{
-    constuser = await userModel.findById(req.userId).select("-password");
+// Profile routes
+userRouter.get("/profile", [userAuth], async (req, res) => {
+  try {
+    const user = await userModel.findById(req.userId).select("-password");
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -311,21 +303,20 @@ userRouter.get("/profile",[userAuth],async(rea,res)=>{
   }
 });
 
-userRouter.put("/profile/update",[userAuth],async(req,res)=>{
-  try{
+userRouter.put("/profile/update", [userAuth], async (req, res) => {
+  try {
     const { name, email, phone } = req.body;
     const user = await userModel.findById(req.userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Update user details
     user.name = name || user.name;
     user.email = email || user.email;
     user.phone = phone || user.phone;
 
     await user.save();
-    
+
     res.status(200).json({ message: "Profile updated successfully", user });
   } catch (error) {
     console.error("Error updating profile:", error);
@@ -333,8 +324,8 @@ userRouter.put("/profile/update",[userAuth],async(req,res)=>{
   }
 });
 
-userRouter.delete("/profile/delete",[userAuth],async(req,res)=>{
-  try{
+userRouter.delete("/profile/delete", [userAuth], async (req, res) => {
+  try {
     const user = await userModel.findByIdAndDelete(req.userId);
     if (!user) {
       return res.status(404).json({ message: "User not found" });
