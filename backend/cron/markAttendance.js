@@ -1,11 +1,18 @@
 const moment = require("moment-timezone");
+const Reservation = require("../models/reservationSchema");
+const Enrollment = require("../models/enrollmentSchema");
 
 async function updateAttendance() {
   try {
-    // Get today’s date in IST
-    const todayIST = moment().tz("Asia/Kolkata").startOf("day").toDate();
+    // Get today's start and end time in IST
+    const startOfDayIST = moment().tz("Asia/Kolkata").startOf("day").toDate();
+    const endOfDayIST = moment().tz("Asia/Kolkata").endOf("day").toDate();
 
-    const reservations = await Reservation.find({ date: todayIST });
+    // Find reservations for today (date within IST range)
+    const reservations = await Reservation.find({
+      date: { $gte: startOfDayIST, $lte: endOfDayIST },
+    });
+
     const reservationMap = {};
     reservations.forEach((r) => {
       if (!reservationMap[r.userId]) reservationMap[r.userId] = [];
@@ -18,10 +25,13 @@ async function updateAttendance() {
       const reservation = userReservations.find(
         (r) => r.messId.toString() === enrollment.messId.toString()
       );
+
       const attendedDay =
-        reservation && (reservation.mealType === "day" || reservation.mealType === "both");
+        reservation &&
+        (reservation.mealType === "day" || reservation.mealType === "both");
       const attendedNight =
-        reservation && (reservation.mealType === "night" || reservation.mealType === "both");
+        reservation &&
+        (reservation.mealType === "night" || reservation.mealType === "both");
 
       return {
         updateOne: {
@@ -29,7 +39,7 @@ async function updateAttendance() {
           update: {
             $push: {
               attendance: {
-                date: todayIST,
+                date: startOfDayIST,
                 attendedDay: attendedDay || false,
                 attendedNight: attendedNight || false,
               },
@@ -48,3 +58,5 @@ async function updateAttendance() {
     console.error("Error during daily attendance update:", err);
   }
 }
+
+module.exports = updateAttendance;
