@@ -60,7 +60,7 @@ const Navbar = () => {
       <div className="container mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
         {/* Logo with Enhanced Animation */}
         <div className="relative group">
-          <div className="absolute -inset-2 bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg blur opacity-25"></div>
+          <div className="absolute -inset-2 rounded-lg blur opacity-25"></div>
           <div className="relative text-2xl sm:text-3xl font-extrabold tracking-wide">
             <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent drop-shadow-sm">
               MealSphere
