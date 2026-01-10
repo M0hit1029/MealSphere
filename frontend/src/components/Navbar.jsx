@@ -60,13 +60,13 @@ const Navbar = () => {
       <div className="container mx-auto px-4 sm:px-6 py-4 flex justify-between items-center">
         {/* Logo with Enhanced Animation */}
         <div className="relative group">
-          <div className="absolute -inset-2 bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-300 animate-pulse"></div>
+          <div className="absolute -inset-2 bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg blur opacity-25"></div>
           <div className="relative text-2xl sm:text-3xl font-extrabold tracking-wide">
-            <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent drop-shadow-lg animate-glow">
+            <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent drop-shadow-sm">
               MealSphere
             </span>
           </div>
-          <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-400 rounded-full animate-ping"></div>
+          <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-400 rounded-full "></div>
           <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full"></div>
         </div>
 
@@ -102,7 +102,7 @@ const Navbar = () => {
           onClick={() => setIsMenuOpen(!isMenuOpen)}
         >
           {isMenuOpen ? (
-            <X size={24} className="transition-transform duration-300" />
+            <Menu size={24} className="transition-transform duration-300" />
           ) : (
             <Menu size={24} className="transition-transform duration-300" />
           )}
