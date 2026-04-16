@@ -8,25 +8,23 @@ const authenticateUser = require("../middlewares/userAuth"); // User authenticat
 const updateAttendance = require("../cron/markAttendance");
 const dotenv = require('dotenv');
 const multer = require("multer");
-const path = require("path");
 const moment = require("moment-timezone");
 
 dotenv.config();
 
 const messRouter = express.Router();
 
-// Multer storage config
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, "uploads/mess-images");
-  },
-  filename: function (req, file, cb) {
-    const uniqueName = Date.now() + "-" + Math.round(Math.random() * 1e9) + path.extname(file.originalname);
-    cb(null, uniqueName);
+// Keep the image in memory and store it as a base64 data URI in MongoDB.
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 5 * 1024 * 1024 },
+  fileFilter: (req, file, cb) => {
+    if (!file.mimetype.startsWith("image/")) {
+      return cb(new Error("Only image uploads are allowed"));
+    }
+    cb(null, true);
   },
 });
-
-const upload = multer({ storage });
 
 // Helper to get IST start of day
 const getISTStartOfDay = () => moment().tz('Asia/Kolkata').startOf('day').toDate();
@@ -41,15 +39,24 @@ messRouter.post("/register", authenticateOwner, upload.single('image'), async (r
       return res.status(400).json({ message: "All fields are required" });
     }
 
-    const imageUrl = req.file ? `/uploads/mess-images/${req.file.filename}` : null;
+    const imageData = req.file
+      ? `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`
+      : undefined;
 
-    const newMess = new messModel({
+    const parsedLiveLocation = typeof liveLocation === "string" ? JSON.parse(liveLocation) : liveLocation;
+
+    const newMessData = {
       name,
       address,
-      liveLocation: JSON.parse(liveLocation),
+      liveLocation: parsedLiveLocation,
       messOwnerId: req.messOwnerId,
-      image: imageUrl,
-    });
+    };
+
+    if (imageData) {
+      newMessData.image = imageData;
+    }
+
+    const newMess = new messModel(newMessData);
 
     await newMess.save();
     res.status(201).json({ message: "Mess registered successfully", mess: newMess });
