@@ -1,67 +1,152 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import Navbar from "../components/MessDashboardNavbar";
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import Card from "../components/Card";
+import {
+  Menu as MenuIcon,
+  Plus,
+  X,
+  Users,
+  ClipboardList,
+  Trash2,
+  BookOpen,
+  ChevronLeft,
+  ChevronRight,
+  UtensilsCrossed,
+  BarChart2,
+} from "lucide-react";
+import Navbar from "../components/MessDashboardNavbar";
 
-const MessRegistrationPage = () => {
-  const [menuForm, setMenuForm] = useState({
-    dayMeal: { dishes: [{ name: "", price: "", items: "" }] },
-    nightMeal: { dishes: [{ name: "", price: "", items: "" }] },
-  });
+const LAST_ACTIVE_MESS_KEY = "ownerLastActiveMessId";
+
+const defaultMenuForm = {
+  dayMeal: { dishes: [{ name: "", price: "", items: "" }] },
+  nightMeal: { dishes: [{ name: "", price: "", items: "" }] },
+};
+
+const MessDashboard = () => {
+  const navigate = useNavigate();
+  const { messId: routeMessId } = useParams();
+
+  const [messes, setMesses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [messData, setMessData] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
+
   const [isMenuModalOpen, setIsMenuModalOpen] = useState(false);
-  const [selectedMessId, setSelectedMessId] = useState(null);
-  const navigate = useNavigate();
+  const [menuForm, setMenuForm] = useState(defaultMenuForm);
+  const [activeMessId, setActiveMessId] = useState(null);
 
   useEffect(() => {
-    fetchMessData();
-  }, []);
-
-  useEffect(() => {
-    if (success || error) {
-      const timer = setTimeout(() => {
-        setSuccess("");
-        setError("");
-      }, 3000);
-      return () => clearTimeout(timer);
-    }
+    const timer = setTimeout(() => {
+      setSuccess("");
+      setError("");
+    }, 3000);
+    return () => clearTimeout(timer);
   }, [success, error]);
 
-  const fetchMessData = async () => {
+  const fetchOwnerMesses = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/mess/owner/messes`,
-        { withCredentials: true }
+      const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/mess/owner/messes`, {
+        withCredentials: true,
+      });
+
+      const fetchedMesses = response.data?.messes || [];
+      if (!fetchedMesses.length) {
+        navigate("/mess-dashboard/create-first-mess", { replace: true });
+        return;
+      }
+
+      setMesses(fetchedMesses);
+
+      const storedMessId = localStorage.getItem(LAST_ACTIVE_MESS_KEY);
+      const fallbackMessId = fetchedMesses[0]._id;
+      const resolvedMessId = [routeMessId, storedMessId, fallbackMessId].find((id) =>
+        fetchedMesses.some((m) => m._id === id)
       );
-      setMessData(response.data.messes);
+
+      setActiveMessId(resolvedMessId);
+      localStorage.setItem(LAST_ACTIVE_MESS_KEY, resolvedMessId);
+
+      if (routeMessId !== resolvedMessId) {
+        navigate(`/mess-dashboard/${resolvedMessId}`, { replace: true });
+      }
     } catch (err) {
+      if (err.response?.status === 404) {
+        navigate("/mess-dashboard/create-first-mess", { replace: true });
+        return;
+      }
       setError(err.response?.data?.message || "Failed to fetch messes");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleMenuChange = (e, mealType, index, field) => {
-    const { value } = e.target;
+  useEffect(() => {
+    fetchOwnerMesses();
+  }, []);
+
+  useEffect(() => {
+    if (!messes.length || !routeMessId) return;
+    const exists = messes.some((m) => m._id === routeMessId);
+    if (!exists) {
+      const fallback = messes[0]._id;
+      setActiveMessId(fallback);
+      localStorage.setItem(LAST_ACTIVE_MESS_KEY, fallback);
+      navigate(`/mess-dashboard/${fallback}`, { replace: true });
+      return;
+    }
+    setActiveMessId(routeMessId);
+    localStorage.setItem(LAST_ACTIVE_MESS_KEY, routeMessId);
+  }, [routeMessId, messes, navigate]);
+
+  const activeMess = useMemo(
+    () => messes.find((m) => m._id === activeMessId) || null,
+    [messes, activeMessId]
+  );
+
+  const handleSelectMess = (messId) => {
+    setActiveMessId(messId);
+    localStorage.setItem(LAST_ACTIVE_MESS_KEY, messId);
+    navigate(`/mess-dashboard/${messId}`);
+    // Auto-close sidebar on mobile
+    if (window.innerWidth < 1024) setSidebarOpen(false);
+  };
+
+  const handleDeleteMess = async () => {
+    if (!activeMess) return;
+    if (!window.confirm(`Delete ${activeMess.name}? This action cannot be undone.`)) return;
+    try {
+      setLoading(true);
+      await axios.delete(`${import.meta.env.VITE_BASE_URL}/mess/${activeMess._id}`, {
+        withCredentials: true,
+      });
+      const updated = messes.filter((m) => m._id !== activeMess._id);
+      setMesses(updated);
+      setSuccess("Mess deleted successfully");
+      if (!updated.length) {
+        localStorage.removeItem(LAST_ACTIVE_MESS_KEY);
+        navigate("/mess-dashboard/create-first-mess", { replace: true });
+        return;
+      }
+      const next = updated[0]._id;
+      setActiveMessId(next);
+      localStorage.setItem(LAST_ACTIVE_MESS_KEY, next);
+      navigate(`/mess-dashboard/${next}`, { replace: true });
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to delete mess");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleMenuChange = (event, mealType, index, field) => {
+    const { value } = event.target;
     setMenuForm((prev) => {
       const updatedDishes = [...prev[mealType].dishes];
-      if (field === "items") {
-        updatedDishes[index] = {
-          ...updatedDishes[index],
-          [field]: value.split(",").map((item) => item.trim()),
-        };
-      } else {
-        updatedDishes[index] = { ...updatedDishes[index], [field]: value };
-      }
-      return {
-        ...prev,
-        [mealType]: { dishes: updatedDishes },
-      };
+      updatedDishes[index] = { ...updatedDishes[index], [field]: value };
+      return { ...prev, [mealType]: { dishes: updatedDishes } };
     });
   };
 
@@ -76,61 +161,83 @@ const MessRegistrationPage = () => {
 
   const deleteDish = (mealType, index) => {
     setMenuForm((prev) => {
-      const updatedDishes = [...prev[mealType].dishes];
-      updatedDishes.splice(index, 1);
+      const updated = [...prev[mealType].dishes];
+      updated.splice(index, 1);
       return {
         ...prev,
-        [mealType]: { dishes: updatedDishes },
+        [mealType]: {
+          dishes: updated.length ? updated : [{ name: "", price: "", items: "" }],
+        },
       };
     });
   };
 
-  const handleDelete = async (messId) => {
-    if (!window.confirm("Are you sure you want to delete this mess? Yes or No")) return;
-    try {
-      setLoading(true);
-      await axios.delete(
-        `${import.meta.env.VITE_BASE_URL}/mess/${messId}`,
-        { withCredentials: true }
-      );
-      setMessData((prev) => prev.filter((mess) => mess._id !== messId));
-      setSuccess("Mess deleted successfully");
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to delete mess");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleViewDetails = (messId, currentMenu) => {
-    setSelectedMessId(messId);
-    setMenuForm(
-      currentMenu || {
-        dayMeal: { dishes: [{ name: "", price: "", items: "" }] },
-        nightMeal: { dishes: [{ name: "", price: "", items: "" }] },
-      }
-    );
+  const openMenuModal = () => {
+    if (!activeMess) return;
+    const normalize = (menu) => ({
+      dayMeal: {
+        dishes: (menu?.dayMeal?.dishes || []).length
+          ? menu.dayMeal.dishes.map((d) => ({
+              name: d.name || "",
+              price: d.price || "",
+              items: Array.isArray(d.items) ? d.items.join(", ") : d.items || "",
+            }))
+          : [{ name: "", price: "", items: "" }],
+      },
+      nightMeal: {
+        dishes: (menu?.nightMeal?.dishes || []).length
+          ? menu.nightMeal.dishes.map((d) => ({
+              name: d.name || "",
+              price: d.price || "",
+              items: Array.isArray(d.items) ? d.items.join(", ") : d.items || "",
+            }))
+          : [{ name: "", price: "", items: "" }],
+      },
+    });
+    setMenuForm(normalize(activeMess.menu));
     setIsMenuModalOpen(true);
   };
 
-  const handleMenuSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError("");
-    setSuccess("");
+  const closeMenuModal = () => {
+    setIsMenuModalOpen(false);
+    setMenuForm(defaultMenuForm);
+  };
+
+  const handleMenuSubmit = async (event) => {
+    event.preventDefault();
+    if (!activeMess) return;
+    const parsedMenu = {
+      dayMeal: {
+        dishes: menuForm.dayMeal.dishes
+          .filter((d) => d.name && d.price !== "")
+          .map((d) => ({
+            name: d.name.trim(),
+            price: Number(d.price),
+            items: String(d.items || "").split(",").map((i) => i.trim()).filter(Boolean),
+          })),
+      },
+      nightMeal: {
+        dishes: menuForm.nightMeal.dishes
+          .filter((d) => d.name && d.price !== "")
+          .map((d) => ({
+            name: d.name.trim(),
+            price: Number(d.price),
+            items: String(d.items || "").split(",").map((i) => i.trim()).filter(Boolean),
+          })),
+      },
+    };
     try {
+      setLoading(true);
       const response = await axios.put(
-        `${import.meta.env.VITE_BASE_URL}/mess/${selectedMessId}`,
-        { menu: menuForm },
+        `${import.meta.env.VITE_BASE_URL}/mess/${activeMess._id}`,
+        { menu: parsedMenu },
         { withCredentials: true }
       );
-      setSuccess(response.data.message || "Menu updated successfully");
-      setMessData((prev) =>
-        prev.map((mess) =>
-          mess._id === selectedMessId ? { ...mess, menu: menuForm } : mess
-        )
+      setMesses((prev) =>
+        prev.map((m) => (m._id === activeMess._id ? { ...m, menu: parsedMenu } : m))
       );
-      setIsMenuModalOpen(false);
+      setSuccess(response.data?.message || "Menu updated successfully");
+      closeMenuModal();
     } catch (err) {
       setError(err.response?.data?.message || "Failed to update menu");
     } finally {
@@ -138,470 +245,331 @@ const MessRegistrationPage = () => {
     }
   };
 
-  const closeModal = () => {
-    setIsMenuModalOpen(false);
-    setError("");
-    setSuccess("");
+  // Generate initials avatar color from mess name
+  const getMessColor = (name = "") => {
+    const colors = [
+      "bg-violet-500", "bg-indigo-500", "bg-blue-500",
+      "bg-emerald-500", "bg-amber-500", "bg-rose-500", "bg-cyan-500",
+    ];
+    const idx = name.charCodeAt(0) % colors.length;
+    return colors[idx];
   };
 
-  const renderContent = () => {
-    if (loading) {
-      return (
-        <div className="col-span-full flex justify-center items-center p-12">
-          <div className="flex flex-col items-center">
-            <svg
-              className="animate-spin h-10 w-10 text-indigo-600 mb-4"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
-            <p className="text-gray-600">Loading your messes...</p>
-          </div>
-        </div>
-      );
-    }
-
-    if (messData.length === 0) {
-      return (
-        <div className="col-span-full bg-white rounded-xl shadow-md p-8 text-center border border-indigo-100">
-          <div className="flex justify-center mb-4 text-indigo-500 text-4xl">🍽️</div>
-          <p className="text-gray-600 text-xl mb-2">No messes registered yet.</p>
-          <p className="text-gray-500">Click on "Add New Mess" to get started.</p>
-        </div>
-      );
-    }
-
-    return messData.map((mess) => (
-      <Card
-        key={mess._id}
-        _id={mess._id}
-        name={mess.name}
-        address={mess.address}
-        liveLocation={mess.liveLocation}
-        menu={mess.menu}
-        image={mess.image}
-        onDelete={() => handleDelete(mess._id)}
-        onViewDetails={() => handleViewDetails(mess._id, mess.menu)}
-        onViewMembers={() => navigate(`/mess-dashboard/${mess._id}/registered-members`)}
-        className="transform transition-all hover:scale-105 hover:shadow-xl"
-      />
-    ));
-  };
+  const getInitials = (name = "") =>
+    name.split(" ").slice(0, 2).map((w) => w[0]?.toUpperCase()).join("");
 
   return (
-    <div className="flex flex-col p-4 sm:p-5 min-h-screen bg-gradient-to-br from-blue-50 via-indigo-100 to-purple-50">
-      <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22100%22 height=%22100%22 viewBox=%220 0 100 100%22%3E%3Cg fill=%22%239C92AC%22 fill-opacity=%220.1%22%3E%3Ccircle cx=%2250%22 cy=%2250%22 r=%2250%22/%3E%3C/g%3E%3C/svg%3E')] opacity-30"></div>
-
+    <div className="min-h-screen bg-slate-50">
       <Navbar />
 
-      <div className="container mx-auto px-4 py-6 sm:py-8 mt-16 sm:mt-20 relative z-10">
-        <div className="bg-white rounded-xl shadow-md p-4 sm:p-6 mb-4 sm:mb-6 mt-2 sm:mt-4 border border-indigo-100">
-          <div className="flex justify-between items-center">
-            <h2 className="text-xl sm:text-2xl font-bold text-indigo-800 flex items-center">
-              <span className="mr-2">🍽️</span> Your Registered Messes
-            </h2>
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/30 z-20 lg:hidden"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <div className="flex pt-16 h-screen overflow-hidden">
+        {/* ─── SIDEBAR ─── */}
+        <aside
+          className={`
+            fixed top-16 left-0 h-[calc(100vh-4rem)] z-30 flex flex-col
+            bg-white border-r border-slate-200 shadow-lg
+            transition-all duration-300 ease-in-out
+            ${sidebarOpen ? "w-72" : "w-0 lg:w-16"}
+            overflow-hidden
+          `}
+        >
+          {/* Sidebar header */}
+          <div className={`flex items-center px-4 py-4 border-b border-slate-100 shrink-0 ${sidebarOpen ? "justify-between" : "justify-center"}`}>
+            {sidebarOpen && (
+              <div className="flex items-center gap-2">
+                <UtensilsCrossed className="w-5 h-5 text-indigo-600" />
+                <span className="font-bold text-slate-800 text-sm tracking-wide uppercase">Your Messes</span>
+              </div>
+            )}
             <button
-              onClick={() => navigate("./add-mess")}
-              className="bg-indigo-600 text-white px-3 sm:px-4 py-2 rounded-lg hover:bg-indigo-700 transition-all duration-300 flex items-center text-sm sm:text-base"
+              type="button"
+              onClick={() => setSidebarOpen((p) => !p)}
+              className="p-1.5 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition-colors"
             >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-4 w-4 sm:h-5 sm:w-5 mr-1 sm:mr-2"
-                viewBox="0 0 20 20"
-                fill="currentColor"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M10 5a1 1 0 011 1v3h3a1 1 0 110 2h-3v3a1 1 0 11-2 0v-3H6a1 1 0 110-2h3V6a1 1 0 011-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-              <span className="hidden sm:inline">Add New Mess</span>
-              <span className="sm:hidden">Add Mess</span>
+              {sidebarOpen ? <ChevronLeft className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
             </button>
           </div>
-        </div>
 
-        {success && (
-          <div className="bg-green-50 border-l-4 border-green-500 text-green-700 p-4 mb-6 rounded-lg shadow-md flex items-center">
-            <svg className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-            </svg>
-            <p>{success}</p>
+          {/* Mess list */}
+          <div className="flex-1 overflow-y-auto py-3 px-2 space-y-1">
+            {messes.map((mess) => {
+              const isActive = mess._id === activeMessId;
+              const initials = getInitials(mess.name);
+              const colorClass = getMessColor(mess.name);
+
+              return (
+                <button
+                  key={mess._id}
+                  type="button"
+                  onClick={() => handleSelectMess(mess._id)}
+                  title={!sidebarOpen ? mess.name : ""}
+                  className={`
+                    w-full flex items-center gap-3 rounded-xl px-2 py-2.5 transition-all group
+                    ${isActive
+                      ? "bg-indigo-50 text-indigo-700"
+                      : "text-slate-600 hover:bg-slate-50 hover:text-slate-800"
+                    }
+                  `}
+                >
+                  {/* Avatar */}
+                  <div className={`
+                    shrink-0 w-9 h-9 rounded-lg flex items-center justify-center text-white text-xs font-bold
+                    ${isActive ? "bg-indigo-600 shadow-md shadow-indigo-200" : colorClass}
+                  `}>
+                    {initials || "M"}
+                  </div>
+
+                  {sidebarOpen && (
+                    <div className="flex-1 text-left min-w-0">
+                      <div className={`text-sm font-semibold truncate ${isActive ? "text-indigo-700" : "text-slate-700"}`}>
+                        {mess.name}
+                      </div>
+                      <div className="text-xs text-slate-400 truncate">{mess.address}</div>
+                    </div>
+                  )}
+
+                  {sidebarOpen && isActive && (
+                    <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 shrink-0" />
+                  )}
+                </button>
+              );
+            })}
           </div>
-        )}
 
-        {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-lg shadow-md flex items-center">
-            <svg className="h-6 w-6 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-            <p>{error}</p>
+          {/* Add Mess button */}
+          <div className="shrink-0 p-3 border-t border-slate-100">
+            <button
+              type="button"
+              onClick={() => navigate("/mess-dashboard/add-mess")}
+              className={`
+                w-full flex items-center gap-2 rounded-xl px-3 py-2.5
+                bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium
+                transition-colors
+                ${!sidebarOpen ? "justify-center" : "justify-start"}
+              `}
+              title={!sidebarOpen ? "Add Mess" : ""}
+            >
+              <Plus className="w-4 h-4 shrink-0" />
+              {sidebarOpen && <span>Add Mess</span>}
+            </button>
           </div>
-        )}
+        </aside>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-20">
-          {renderContent()}
-        </div>
+        {/* ─── MAIN CONTENT ─── */}
+        <main
+          className={`
+            flex-1 overflow-y-auto transition-all duration-300
+            ${sidebarOpen ? "lg:ml-72" : "lg:ml-16"}
+          `}
+        >
+          {/* Top bar (mobile hamburger) */}
+          <div className="sticky top-0 z-10 bg-slate-50/80 backdrop-blur border-b border-slate-200 px-6 py-3 flex items-center gap-3 lg:hidden">
+            <button
+              type="button"
+              onClick={() => setSidebarOpen((p) => !p)}
+              className="p-2 rounded-lg bg-white border border-slate-200 shadow-sm text-slate-600"
+            >
+              <MenuIcon className="w-4 h-4" />
+            </button>
+            {activeMess && (
+              <span className="font-semibold text-slate-700 truncate">{activeMess.name}</span>
+            )}
+          </div>
+
+          <div className="p-6 max-w-4xl mx-auto space-y-5">
+            {/* Alerts */}
+            {success && (
+              <div className="bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                {success}
+              </div>
+            )}
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-xl text-sm flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-red-500" />
+                {error}
+              </div>
+            )}
+
+            {/* Main card */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+              {loading ? (
+                <div className="flex items-center gap-3 text-slate-500 p-8">
+                  <div className="w-5 h-5 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                  Loading mess details...
+                </div>
+              ) : !activeMess ? (
+                <div className="text-slate-500 p-8">No active mess selected.</div>
+              ) : (
+                <>
+                  {/* Mess header */}
+                  <div className="bg-gradient-to-r from-indigo-600 to-violet-600 p-6 text-white">
+                    <div className="flex items-center gap-4">
+                      <img
+                        src={activeMess.image || "https://res.cloudinary.com/dz1qj3x7h/image/upload/v1735681234/MealSphere/messDefaultImage.png"}
+                        alt={activeMess.name}
+                        className="w-16 h-16 rounded-xl object-cover border-2 border-white/30 shadow-lg"
+                      />
+                      <div>
+                        <h1 className="text-2xl font-bold">{activeMess.name}</h1>
+                        <p className="text-indigo-200 text-sm mt-0.5">{activeMess.address}</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Action buttons */}
+                  <div className="p-6">
+                    <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">
+                      Manage
+                    </h2>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <ActionButton
+                        icon={<BookOpen className="w-5 h-5" />}
+                        label="View / Update Menu"
+                        description="Add or edit today's dishes"
+                        color="blue"
+                        onClick={openMenuModal}
+                      />
+                      <ActionButton
+                        icon={<Users className="w-5 h-5" />}
+                        label="Registered Members"
+                        description="See who's enrolled"
+                        color="green"
+                        onClick={() => navigate(`/mess-dashboard/${activeMess._id}/registered-members`)}
+                      />
+                      <ActionButton
+                        icon={<ClipboardList className="w-5 h-5" />}
+                        label="Attendance"
+                        description="Track daily attendance"
+                        color="purple"
+                        onClick={() => navigate(`/mess-dashboard/${activeMess._id}/attendance`)}
+                      />
+                      <ActionButton
+                        icon={<BarChart2 className="w-5 h-5" />}
+                        label="Stats"
+                        description="View mess analytics"
+                        color="amber"
+                        onClick={() => navigate(`/mess-dashboard/${activeMess._id}/stats`)}
+                      />
+                    </div>
+
+                    <div className="mt-4 pt-4 border-t border-slate-100">
+                      <button
+                        type="button"
+                        onClick={handleDeleteMess}
+                        className="inline-flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg border border-red-200 transition-colors"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                        Delete this mess
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </main>
       </div>
 
-      {isMenuModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white p-6 rounded-xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl border border-indigo-200">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-indigo-800 flex items-center">
-                <span className="mr-2">📝</span> Update Today's Menu
-              </h2>
+      {/* ─── MENU MODAL ─── */}
+      {isMenuModalOpen && activeMess && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-slate-100 px-6 py-4 flex items-center justify-between rounded-t-2xl z-10">
+              <div>
+                <h2 className="text-lg font-bold text-slate-800">Update Menu</h2>
+                <p className="text-sm text-slate-500">{activeMess.name}</p>
+              </div>
               <button
-                onClick={closeModal}
-                className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full p-2 transition-colors"
+                type="button"
+                onClick={closeMenuModal}
+                className="p-2 hover:bg-slate-100 rounded-lg text-slate-500"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleMenuSubmit} className="space-y-6">
-              <div className="bg-gradient-to-r from-yellow-50 to-yellow-100 p-4 rounded-lg border border-yellow-200">
-                <h3 className="text-lg font-semibold text-yellow-800 mb-3 flex items-center">
-                  <span className="mr-2">☀️</span> Day Meal
-                </h3>
-                {menuForm.dayMeal.dishes.map((dish, index) => (
-                  <div
-                    key={index}
-                    className="space-y-3 bg-white border border-yellow-200 p-4 rounded-lg mt-3 shadow-sm hover:shadow-md transition-all"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="font-medium text-yellow-700">Dish #{index + 1}</div>
-                      <button
-                        type="button"
-                        onClick={() => deleteDish("dayMeal", index)}
-                        className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50 transition-colors"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-
-                    <div className="flex items-center">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-gray-500 mr-2"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                      </svg>
-                      <input
-                        type="text"
-                        placeholder="Dish Name"
-                        value={dish.name}
-                        onChange={(e) => handleMenuChange(e, "dayMeal", index, "name")}
-                        className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all"
-                        required
-                      />
-                    </div>
-
-                    <div className="flex items-center">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-gray-500 mr-2"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <input
-                        type="number"
-                        placeholder="Price"
-                        value={dish.price}
-                        onChange={(e) => handleMenuChange(e, "dayMeal", index, "price")}
-                        className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all"
-                        required
-                      />
-                    </div>
-
-                    <div className="flex items-center">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-gray-500 mr-2"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                      </svg>
-                      <input
-                        type="text"
-                        placeholder="Items (comma-separated)"
-                        value={dish.items instanceof Array ? dish.items.join(", ") : dish.items}
-                        onChange={(e) => handleMenuChange(e, "dayMeal", index, "items")}
-                        className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all"
-                        required
-                      />
-                    </div>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => addDish("dayMeal")}
-                  className="mt-3 text-yellow-600 hover:text-yellow-800 font-medium flex items-center transition-all duration-300"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 mr-1"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    />
-                  </svg>
-                  Add New Dish
-                </button>
-              </div>
-
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-100 p-4 rounded-lg border border-indigo-200">
-                <h3 className="text-lg font-semibold text-indigo-800 mb-3 flex items-center">
-                  <span className="mr-2">🌙</span> Night Meal
-                </h3>
-                {menuForm.nightMeal.dishes.map((dish, index) => (
-                  <div
-                    key={index}
-                    className="space-y-3 bg-white border border-indigo-200 p-4 rounded-lg mt-3 shadow-sm hover:shadow-md transition-all"
-                  >
-                    <div className="flex justify-between items-start">
-                      <div className="font-medium text-indigo-700">Dish #{index + 1}</div>
-                      <button
-                        type="button"
-                        onClick={() => deleteDish("nightMeal", index)}
-                        className="text-red-500 hover:text-red-700 p-1 rounded-full hover:bg-red-50 transition-colors"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          className="h-5 w-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth="2"
-                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                          />
-                        </svg>
-                      </button>
-                    </div>
-
-                    <div className="flex items-center">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-gray-500 mr-2"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
-                      </svg>
-                      <input
-                        type="text"
-                        placeholder="Dish Name"
-                        value={dish.name}
-                        onChange={(e) => handleMenuChange(e, "nightMeal", index, "name")}
-                        className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                        required
-                      />
-                    </div>
-
-                    <div className="flex items-center">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-gray-500 mr-2"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                        />
-                      </svg>
-                      <input
-                        type="number"
-                        placeholder="Price"
-                        value={dish.price}
-                        onChange={(e) => handleMenuChange(e, "nightMeal", index, "price")}
-                        className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                        required
-                      />
-                    </div>
-
-                    <div className="flex items-center">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-5 w-5 text-gray-500 mr-2"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
-                      </svg>
-                      <input
-                        type="text"
-                        placeholder="Items (comma-separated)"
-                        value={dish.items instanceof Array ? dish.items.join(", ") : dish.items}
-                        onChange={(e) => handleMenuChange(e, "nightMeal", index, "items")}
-                        className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
-                        required
-                      />
-                    </div>
-                  </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => addDish("nightMeal")}
-                  className="mt-3 text-indigo-600 hover:text-indigo-800 font-medium flex items-center transition-all duration-300"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-5 w-5 mr-1"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                    />
-                  </svg>
-                  Add New Dish
-                </button>
-              </div>
-
-              {error && (
-                <div className="bg-red-50 border-l-4 border-red-500 text-red-700 p-3 rounded-md">
-                  <div className="flex">
-                    <svg
-                      className="h-5 w-5 mr-2"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+            <form onSubmit={handleMenuSubmit} className="p-6 space-y-6">
+              {["dayMeal", "nightMeal"].map((mealType) => (
+                <div key={mealType} className="border border-slate-200 rounded-xl overflow-hidden">
+                  <div className="bg-slate-50 px-4 py-3 flex items-center justify-between border-b border-slate-200">
+                    <h3 className="font-semibold text-slate-700">
+                      {mealType === "dayMeal" ? "🌤 Lunch Menu" : "🌙 Dinner Menu"}
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => addDish(mealType)}
+                      className="text-sm text-indigo-600 hover:text-indigo-700 font-medium flex items-center gap-1"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
-                      />
-                    </svg>
-                    <p>{error}</p>
+                      <Plus className="w-3.5 h-3.5" />
+                      Add Dish
+                    </button>
+                  </div>
+
+                  <div className="p-4 space-y-3">
+                    {menuForm[mealType].dishes.map((dish, index) => (
+                      <div
+                        key={`${mealType}-${index}`}
+                        className="grid grid-cols-1 md:grid-cols-[1fr,100px,1fr,auto] gap-2 items-center"
+                      >
+                        <input
+                          type="text"
+                          value={dish.name}
+                          onChange={(e) => handleMenuChange(e, mealType, index, "name")}
+                          placeholder="Dish name"
+                          className="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                          required
+                        />
+                        <input
+                          type="number"
+                          min="0"
+                          value={dish.price}
+                          onChange={(e) => handleMenuChange(e, mealType, index, "price")}
+                          placeholder="₹ Price"
+                          className="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                          required
+                        />
+                        <input
+                          type="text"
+                          value={dish.items}
+                          onChange={(e) => handleMenuChange(e, mealType, index, "items")}
+                          placeholder="Items (comma separated)"
+                          className="px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => deleteDish(mealType, index)}
+                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              )}
+              ))}
 
-              {success && (
-                <div className="bg-green-50 border-l-4 border-green-500 text-green-700 p-3 rounded-md">
-                  <div className="flex">
-                    <svg
-                      className="h-5 w-5 mr-2"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M5 13l4 4L19 7"
-                      />
-                    </svg>
-                    <p>{success}</p>
-                  </div>
-                </div>
-              )}
-
-              <div className="flex justify-end gap-4 mt-6">
+              <div className="flex justify-end gap-3 pt-2">
                 <button
                   type="button"
-                  onClick={closeModal}
-                  className="px-4 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-100 transition-all duration-300"
+                  onClick={closeMenuModal}
+                  className="px-5 py-2.5 text-sm border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  disabled={loading}
-                  className="px-4 py-2 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 disabled:bg-indigo-400 transition-all duration-300 shadow-md hover:shadow-lg"
+                  className="px-5 py-2.5 text-sm bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium"
                 >
-                  {loading ? (
-                    <span className="flex items-center">
-                      <svg
-                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      Updating...
-                    </span>
-                  ) : (
-                    "Update Menu"
-                  )}
+                  Save Menu
                 </button>
               </div>
             </form>
@@ -612,4 +580,31 @@ const MessRegistrationPage = () => {
   );
 };
 
-export default MessRegistrationPage;
+// ─── Action Button Sub-component ───
+const colorMap = {
+  blue:   { bg: "bg-blue-50",   border: "border-blue-100",   icon: "bg-blue-100 text-blue-600",   text: "text-blue-700",   hover: "hover:bg-blue-50/80" },
+  green:  { bg: "bg-emerald-50", border: "border-emerald-100", icon: "bg-emerald-100 text-emerald-600", text: "text-emerald-700", hover: "hover:bg-emerald-50/80" },
+  purple: { bg: "bg-violet-50", border: "border-violet-100", icon: "bg-violet-100 text-violet-600", text: "text-violet-700", hover: "hover:bg-violet-50/80" },
+  amber:  { bg: "bg-amber-50",  border: "border-amber-100",  icon: "bg-amber-100 text-amber-600",  text: "text-amber-700",  hover: "hover:bg-amber-50/80" },
+};
+
+const ActionButton = ({ icon, label, description, color, onClick }) => {
+  const c = colorMap[color] || colorMap.blue;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center gap-4 p-4 rounded-xl border ${c.bg} ${c.border} ${c.hover} text-left transition-all group w-full`}
+    >
+      <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${c.icon}`}>
+        {icon}
+      </div>
+      <div>
+        <div className={`font-semibold text-sm ${c.text}`}>{label}</div>
+        <div className="text-xs text-slate-400 mt-0.5">{description}</div>
+      </div>
+    </button>
+  );
+};
+
+export default MessDashboard;

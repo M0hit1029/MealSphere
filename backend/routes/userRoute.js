@@ -11,6 +11,11 @@ const dotenv = require("dotenv");
 const reservationAuth = require("../middlewares/reservationAuth");
 const userAuth = require("../middlewares/userAuth");
 const messModel = require("../models/messSchema");
+const mealLedgerModel = require("../models/mealLedgerSchema");
+const {
+  upsertMealLedgerEntry,
+  markMealLedgerCancelled,
+} = require("../utils/mealLedger");
 dotenv.config();
 
 app.use(express.json());
@@ -143,23 +148,6 @@ userRouter.post("/reserve", [userAuth, reservationAuth], async (req, res) => {
       }
       await absenteeMess.save();
 
-      // Update absentee in enrollment.attendance
-      const attendanceToday = enrolled.attendance.find(
-        (a) =>
-          moment(a.date).tz("Asia/Kolkata").format("YYYY-MM-DD") ===
-          moment().tz("Asia/Kolkata").format("YYYY-MM-DD")
-      );
-
-      if (attendanceToday) {
-        if (mealType === "day") attendanceToday.attendedDay = false;
-        else attendanceToday.attendedNight = false;
-      } else {
-        enrolled.attendance.push({
-          date: startOfDayIST,
-          attendedDay: mealType === "day" ? false : null,
-          attendedNight: mealType === "night" ? false : null,
-        });
-      }
       await enrolled.save();
     }
 
@@ -176,6 +164,16 @@ userRouter.post("/reserve", [userAuth, reservationAuth], async (req, res) => {
       messId,
       mealType,
       date: startOfDayIST,
+    });
+
+    await upsertMealLedgerEntry({
+      userId: req.userId,
+      mess,
+      date: startOfDayIST,
+      mealType,
+      reservationStatus: "reserved",
+      attendanceStatus: "not_marked",
+      source: "daily_reservation",
     });
 
     res.status(200).json({
@@ -258,25 +256,31 @@ userRouter.delete(
           .json({ message: "Can only cancel today's reservations" });
       }
 
-      // Update enrollment attendance if any
-      const enrolledOne = await enrollmentSchema.findOne({
-        userId,
-        isAccepted: true,
-      });
-      if (enrolledOne) {
-        enrolledOne.attendance.forEach((att) => {
-          if (
-            moment(att.date).tz("Asia/Kolkata").format("YYYY-MM-DD") ===
-            moment().tz("Asia/Kolkata").format("YYYY-MM-DD")
-          ) {
-            if (reservation.mealType === "day") att.attendedDay = false;
-            else if (reservation.mealType === "night") att.attendedNight = false;
-          }
-        });
-        await enrolledOne.save();
-      }
-
       await reservationModel.deleteOne({ _id: reservationId });
+
+      if (reservation.mealType === "both") {
+        await Promise.all([
+          markMealLedgerCancelled({
+            userId,
+            messId: reservation.messId,
+            date: reservationDate,
+            mealType: "day",
+          }),
+          markMealLedgerCancelled({
+            userId,
+            messId: reservation.messId,
+            date: reservationDate,
+            mealType: "night",
+          }),
+        ]);
+      } else {
+        await markMealLedgerCancelled({
+          userId,
+          messId: reservation.messId,
+          date: reservationDate,
+          mealType: reservation.mealType,
+        });
+      }
 
       res.status(200).json({
         message: "Reservation cancelled successfully",
@@ -288,6 +292,93 @@ userRouter.delete(
     }
   }
 );
+
+userRouter.get("/meal-ledger", [userAuth], async (req, res) => {
+  try {
+    const userId = req.userId;
+    const allowedDays = [7, 30, 90];
+    const requestedDays = Number(req.query.days) || 30;
+    const days = allowedDays.includes(requestedDays) ? requestedDays : 30;
+
+    const rangeStart = moment()
+      .tz("Asia/Kolkata")
+      .startOf("day")
+      .subtract(days - 1, "days")
+      .toDate();
+
+    const entries = await mealLedgerModel
+      .find({ userId, date: { $gte: rangeStart } })
+      .sort({ date: -1, createdAt: -1 })
+      .lean();
+
+    const activeEntries = entries.filter((entry) => entry.reservationStatus !== "cancelled");
+    const totalSpend = activeEntries.reduce((sum, entry) => sum + Number(entry.totalPrice || 0), 0);
+    const averageMealCost = activeEntries.length > 0
+      ? Number((totalSpend / activeEntries.length).toFixed(2))
+      : 0;
+
+    const monthStart = moment().tz("Asia/Kolkata").startOf("month").toDate();
+    const monthEnd = moment().tz("Asia/Kolkata").endOf("month").toDate();
+
+    const monthlyEntries = await mealLedgerModel
+      .find({
+        userId,
+        date: { $gte: monthStart, $lte: monthEnd },
+        reservationStatus: { $ne: "cancelled" },
+      })
+      .lean();
+
+    const monthlySpend = monthlyEntries.reduce(
+      (sum, entry) => sum + Number(entry.totalPrice || 0),
+      0
+    );
+    const monthlyAverageMealCost = monthlyEntries.length > 0
+      ? Number((monthlySpend / monthlyEntries.length).toFixed(2))
+      : 0;
+
+    const dishFrequency = {};
+    monthlyEntries.forEach((entry) => {
+      (entry.dishNames || []).forEach((dish) => {
+        if (!dish) return;
+        dishFrequency[dish] = (dishFrequency[dish] || 0) + 1;
+      });
+    });
+
+    const mostEatenDish = Object.keys(dishFrequency).length > 0
+      ? Object.entries(dishFrequency).sort((a, b) => b[1] - a[1])[0][0]
+      : null;
+
+    const formattedEntries = entries.map((entry) => ({
+      id: entry._id,
+      date: entry.date,
+      messName: entry.messName,
+      mealType: entry.mealType,
+      dishNames: entry.dishNames || [],
+      totalPrice: Number(entry.totalPrice || 0),
+      reservationStatus: entry.reservationStatus,
+      attendanceStatus: entry.attendanceStatus,
+      source: entry.source,
+    }));
+
+    res.status(200).json({
+      days,
+      entries: formattedEntries,
+      summary: {
+        totalMeals: entries.length,
+        totalSpend,
+        averageMealCost,
+      },
+      monthlyInsights: {
+        month: moment().tz("Asia/Kolkata").format("MMMM YYYY"),
+        mostEatenDish,
+        averageMealCost: monthlyAverageMealCost,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching meal ledger:", error);
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+});
 
 // Profile routes
 userRouter.get("/profile", [userAuth], async (req, res) => {

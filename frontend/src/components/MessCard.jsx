@@ -5,6 +5,8 @@ const MessCard = ({ mess, onMonthlyBooking, onDailyReservation, isReservationAll
   const [isHovered, setIsHovered] = useState(false);
   const dayDishes = menu?.dayMeal?.dishes || [];
   const nightDishes = menu?.nightMeal?.dishes || [];
+  const hasDayMenu = dayDishes.length > 0;
+  const hasNightMenu = nightDishes.length > 0;
   const hasSpots = true;
 
   const reservedForDay = reservedMesses.some(
@@ -109,15 +111,19 @@ const MessCard = ({ mess, onMonthlyBooking, onDailyReservation, isReservationAll
               <div className="text-center py-2 px-4 bg-gray-100 rounded-lg text-sm text-gray-600">
                 Lunch Reserved ✓
               </div>
+            ) : !hasDayMenu ? (
+              <div className="text-center py-2 px-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700 font-medium">
+                Menu not available yet
+              </div>
             ) : (
               <button
                 onClick={() => onDailyReservation(mess._id, "day")}
                 className={`btn-success text-sm flex items-center justify-center gap-1 ${
-                  !hasSpots || !isReservationAllowed.day
+                  !hasSpots || !isReservationAllowed.day || !hasDayMenu
                     ? "opacity-50 cursor-not-allowed"
                     : ""
                 }`}
-                disabled={!hasSpots || !isReservationAllowed.day}
+                disabled={!hasSpots || !isReservationAllowed.day || !hasDayMenu}
               >
                 <Utensils className="w-3 h-3" />
                 Reserve Lunch
@@ -127,15 +133,19 @@ const MessCard = ({ mess, onMonthlyBooking, onDailyReservation, isReservationAll
               <div className="text-center py-2 px-4 bg-gray-100 rounded-lg text-sm text-gray-600">
                 Dinner Reserved ✓
               </div>
+            ) : !hasNightMenu ? (
+              <div className="text-center py-2 px-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700 font-medium">
+                Menu not available yet
+              </div>
             ) : (
               <button
                 onClick={() => onDailyReservation(mess._id, "night")}
                 className={`bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 text-sm flex items-center justify-center gap-1 ${
-                  !hasSpots || !isReservationAllowed.night
+                  !hasSpots || !isReservationAllowed.night || !hasNightMenu
                     ? "opacity-50 cursor-not-allowed"
                     : ""
                 }`}
-                disabled={!hasSpots || !isReservationAllowed.night}
+                disabled={!hasSpots || !isReservationAllowed.night || !hasNightMenu}
               >
                 <Utensils className="w-3 h-3" />
                 Reserve Dinner

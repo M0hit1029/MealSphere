@@ -1,4 +1,9 @@
 const Reservation = require('../models/reservationSchema'); // Adjust path
+const {
+  getCurrentIST,
+  isBookingOpen,
+  getBookingClosedMessage,
+} = require('../utils/bookingWindow');
 
 const reservationAuth = async (req, res, next) => {
   try {
@@ -9,8 +14,15 @@ const reservationAuth = async (req, res, next) => {
       return res.status(400).json({ message: 'Invalid mealType. Must be "day" or "night"' });
     }
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0); // Start of the day
+    const nowIST = getCurrentIST();
+
+    if (!isBookingOpen(mealType, nowIST)) {
+      return res.status(403).json({
+        message: getBookingClosedMessage(mealType),
+      });
+    }
+
+    const today = nowIST.clone().startOf('day').toDate();
 
     const existingReservation = await Reservation.findOne({
       userId,

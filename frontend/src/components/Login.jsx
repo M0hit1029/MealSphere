@@ -4,6 +4,35 @@ import { User, Mail, Lock, Phone, Eye, EyeOff, Store } from "lucide-react";
 import axios from "axios";
 import Navbar from "./Navbar";
 
+const LAST_ACTIVE_MESS_KEY = "ownerLastActiveMessId";
+
+const resolveMessOwnerRedirectPath = async () => {
+  try {
+    const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/mess/owner/messes`, {
+      withCredentials: true,
+    });
+
+    const messes = response.data?.messes || [];
+    if (!messes.length) {
+      localStorage.removeItem(LAST_ACTIVE_MESS_KEY);
+      return "/mess-dashboard/create-first-mess";
+    }
+
+    const lastActiveMessId = localStorage.getItem(LAST_ACTIVE_MESS_KEY);
+    const resolvedMess =
+      messes.find((mess) => mess._id === lastActiveMessId) || messes[0];
+
+    localStorage.setItem(LAST_ACTIVE_MESS_KEY, resolvedMess._id);
+    return `/mess-dashboard/${resolvedMess._id}`;
+  } catch (error) {
+    if (error.response?.status === 404) {
+      localStorage.removeItem(LAST_ACTIVE_MESS_KEY);
+      return "/mess-dashboard/create-first-mess";
+    }
+    return "/mess-dashboard";
+  }
+};
+
 function LoginSignupPage() {
   const { userType } = useParams();
   const navigate = useNavigate();
@@ -29,9 +58,12 @@ function LoginSignupPage() {
         });
 
         if (response.status === 200 && response.data.message === "Authorized") {
-          navigate(
-            effectiveUserType === "customer" ? "/user-dashboard" : "/mess-dashboard"
-          );
+          if (effectiveUserType === "customer") {
+            navigate("/user-dashboard");
+          } else {
+            const landingPath = await resolveMessOwnerRedirectPath();
+            navigate(landingPath);
+          }
         }
       } catch (error) {
         console.error("Token verification failed:", error);
@@ -201,9 +233,12 @@ function AuthSection({ userType, navigate }) {
           },
         }
       );
-      navigate(
-        effectiveUserType === "customer" ? "/user-dashboard" : "/mess-dashboard"
-      );
+      if (effectiveUserType === "customer") {
+        navigate("/user-dashboard");
+      } else {
+        const landingPath = await resolveMessOwnerRedirectPath();
+        navigate(landingPath);
+      }
     } catch (err) {
       setErrors({
         ...errors,
@@ -248,9 +283,12 @@ function AuthSection({ userType, navigate }) {
         }
       );
 
-      navigate(
-        effectiveUserType === "customer" ? "/user-dashboard" : "/mess-dashboard"
-      );
+      if (effectiveUserType === "customer") {
+        navigate("/user-dashboard");
+      } else {
+        const landingPath = await resolveMessOwnerRedirectPath();
+        navigate(landingPath);
+      }
     } catch (err) {
       setErrors({
         ...errors,
@@ -354,7 +392,7 @@ function AuthSection({ userType, navigate }) {
                 placeholder={
                   effectiveUserType === "customer"
                     ? "Email address: user1@gmail.com"
-                    : "Email address: messowner1@gmail.com"
+                    : "Email address: user2@gmail.com"
                 }
                 required
                 className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300"
@@ -447,7 +485,7 @@ function AuthSection({ userType, navigate }) {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                placeholder="Email address: user1@gmail.com"
+                placeholder="Email address"
                 required
                 className={`w-full pl-12 pr-4 py-3 bg-gray-50 border ${
                   errors.email ? "border-red-500" : "border-gray-200"
