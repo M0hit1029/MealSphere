@@ -13,6 +13,7 @@ import {
   ChevronRight,
   UtensilsCrossed,
   BarChart2,
+  Settings,
 } from "lucide-react";
 import Navbar from "../components/MessDashboardNavbar";
 
@@ -21,6 +22,13 @@ const LAST_ACTIVE_MESS_KEY = "ownerLastActiveMessId";
 const defaultMenuForm = {
   dayMeal: { dishes: [{ name: "", price: "", items: "" }] },
   nightMeal: { dishes: [{ name: "", price: "", items: "" }] },
+};
+
+const defaultCapacityForm = {
+  dayLimit: "",
+  nightLimit: "",
+  dayWaitlistEnabled: false,
+  nightWaitlistEnabled: false,
 };
 
 const MessDashboard = () => {
@@ -34,7 +42,9 @@ const MessDashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const [isMenuModalOpen, setIsMenuModalOpen] = useState(false);
+  const [isCapacityModalOpen, setIsCapacityModalOpen] = useState(false);
   const [menuForm, setMenuForm] = useState(defaultMenuForm);
+  const [capacityForm, setCapacityForm] = useState(defaultCapacityForm);
   const [activeMessId, setActiveMessId] = useState(null);
 
   useEffect(() => {
@@ -45,8 +55,8 @@ const MessDashboard = () => {
     return () => clearTimeout(timer);
   }, [success, error]);
 
-  const fetchOwnerMesses = async () => {
-    setLoading(true);
+  const fetchOwnerMesses = async ({ silent = false } = {}) => {
+    if (!silent) setLoading(true);
     try {
       const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/mess/owner/messes`, {
         withCredentials: true,
@@ -79,12 +89,16 @@ const MessDashboard = () => {
       }
       setError(err.response?.data?.message || "Failed to fetch messes");
     } finally {
-      setLoading(false);
+      if (!silent) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchOwnerMesses();
+    const poller = setInterval(() => {
+      fetchOwnerMesses({ silent: true });
+    }, 15000);
+    return () => clearInterval(poller);
   }, []);
 
   useEffect(() => {
@@ -198,9 +212,25 @@ const MessDashboard = () => {
     setIsMenuModalOpen(true);
   };
 
+  const openCapacityModal = () => {
+    if (!activeMess) return;
+    setCapacityForm({
+      dayLimit: activeMess.capacity?.day?.limit ?? "",
+      nightLimit: activeMess.capacity?.night?.limit ?? "",
+      dayWaitlistEnabled: !!activeMess.capacity?.day?.waitlistEnabled,
+      nightWaitlistEnabled: !!activeMess.capacity?.night?.waitlistEnabled,
+    });
+    setIsCapacityModalOpen(true);
+  };
+
   const closeMenuModal = () => {
     setIsMenuModalOpen(false);
     setMenuForm(defaultMenuForm);
+  };
+
+  const closeCapacityModal = () => {
+    setIsCapacityModalOpen(false);
+    setCapacityForm(defaultCapacityForm);
   };
 
   const handleMenuSubmit = async (event) => {
@@ -245,6 +275,47 @@ const MessDashboard = () => {
     }
   };
 
+  const handleCapacitySubmit = async (event) => {
+    event.preventDefault();
+    if (!activeMess) return;
+
+    const parsedCapacity = {
+      day: {
+        limit: capacityForm.dayLimit === "" ? null : Number(capacityForm.dayLimit),
+        waitlistEnabled: !!capacityForm.dayWaitlistEnabled,
+      },
+      night: {
+        limit: capacityForm.nightLimit === "" ? null : Number(capacityForm.nightLimit),
+        waitlistEnabled: !!capacityForm.nightWaitlistEnabled,
+      },
+    };
+
+    const dayLimitValid = parsedCapacity.day.limit === null || (Number.isFinite(parsedCapacity.day.limit) && parsedCapacity.day.limit >= 0);
+    const nightLimitValid = parsedCapacity.night.limit === null || (Number.isFinite(parsedCapacity.night.limit) && parsedCapacity.night.limit >= 0);
+    if (!dayLimitValid || !nightLimitValid) {
+      setError("Capacity must be a valid non-negative number");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await axios.put(
+        `${import.meta.env.VITE_BASE_URL}/mess/${activeMess._id}`,
+        { capacity: parsedCapacity },
+        { withCredentials: true }
+      );
+      setMesses((prev) =>
+        prev.map((m) => (m._id === activeMess._id ? { ...m, capacity: parsedCapacity } : m))
+      );
+      setSuccess(response.data?.message || "Capacity updated successfully");
+      closeCapacityModal();
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to update capacity");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   // Generate initials avatar color from mess name
   const getMessColor = (name = "") => {
     const colors = [
@@ -257,6 +328,18 @@ const MessDashboard = () => {
 
   const getInitials = (name = "") =>
     name.split(" ").slice(0, 2).map((w) => w[0]?.toUpperCase()).join("");
+
+  const getCapacitySummary = (mess, mealType) => {
+    const booked = mealType === "day" ? Number(mess?.attendingTodayDay || 0) : Number(mess?.attendingTodayNight || 0);
+    const rawLimit = mealType === "day" ? mess?.capacity?.day?.limit : mess?.capacity?.night?.limit;
+    const limit = rawLimit === null || rawLimit === undefined || rawLimit === "" ? null : Number(rawLimit);
+    const hasLimit = Number.isFinite(limit) && limit > 0;
+    return {
+      booked,
+      limit: hasLimit ? limit : null,
+      full: hasLimit && booked >= limit,
+    };
+  };
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -425,6 +508,32 @@ const MessDashboard = () => {
                     </div>
                   </div>
 
+                  <div className="px-6 pt-5 pb-2 bg-slate-50/60 border-b border-slate-100">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {[{ mealType: "day", label: "Lunch" }, { mealType: "night", label: "Dinner" }].map(({ mealType, label }) => {
+                        const summary = getCapacitySummary(activeMess, mealType);
+                        return (
+                          <div
+                            key={mealType}
+                            className={`rounded-xl border px-4 py-3 ${summary.full ? "border-red-200 bg-red-50" : "border-slate-200 bg-white"}`}
+                          >
+                            <div className="flex items-center justify-between gap-3">
+                              <div>
+                                <p className="text-xs uppercase tracking-wider text-slate-500 font-semibold">{label} Capacity</p>
+                                <p className={`text-lg font-bold ${summary.full ? "text-red-700" : "text-slate-800"}`}>
+                                  {summary.booked} / {summary.limit ?? "Unlimited"}
+                                </p>
+                              </div>
+                              <div className={`text-xs font-semibold px-2.5 py-1 rounded-full ${summary.full ? "bg-red-100 text-red-700" : "bg-emerald-100 text-emerald-700"}`}>
+                                {summary.full ? "Full" : "Open"}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   {/* Action buttons */}
                   <div className="p-6">
                     <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-4">
@@ -437,6 +546,13 @@ const MessDashboard = () => {
                         description="Add or edit today's dishes"
                         color="blue"
                         onClick={openMenuModal}
+                      />
+                      <ActionButton
+                        icon={<Settings className="w-5 h-5" />}
+                        label="Capacity Settings"
+                        description="Set lunch and dinner limits"
+                        color="amber"
+                        onClick={openCapacityModal}
                       />
                       <ActionButton
                         icon={<Users className="w-5 h-5" />}
@@ -570,6 +686,86 @@ const MessDashboard = () => {
                   className="px-5 py-2.5 text-sm bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium"
                 >
                   Save Menu
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {isCapacityModalOpen && activeMess && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-xl">
+            <div className="border-b border-slate-100 px-6 py-4 flex items-center justify-between rounded-t-2xl">
+              <div>
+                <h2 className="text-lg font-bold text-slate-800">Capacity Settings</h2>
+                <p className="text-sm text-slate-500">{activeMess.name}</p>
+              </div>
+              <button
+                type="button"
+                onClick={closeCapacityModal}
+                className="p-2 hover:bg-slate-100 rounded-lg text-slate-500"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCapacitySubmit} className="p-6 space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  { key: "day", label: "Lunch" },
+                  { key: "night", label: "Dinner" },
+                ].map(({ key, label }) => (
+                  <div key={key} className="border border-slate-200 rounded-xl p-4 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-slate-700">{label}</h3>
+                      <span className="text-xs text-slate-500">
+                        Current: {key === "day" ? Number(activeMess.attendingTodayDay || 0) : Number(activeMess.attendingTodayNight || 0)}
+                      </span>
+                    </div>
+                    <label className="block">
+                      <span className="text-sm text-slate-600">Max capacity</span>
+                      <input
+                        type="number"
+                        min="0"
+                        value={key === "day" ? capacityForm.dayLimit : capacityForm.nightLimit}
+                        onChange={(e) => setCapacityForm((prev) => ({
+                          ...prev,
+                          [key === "day" ? "dayLimit" : "nightLimit"]: e.target.value,
+                        }))}
+                        placeholder="Leave blank for unlimited"
+                        className="mt-1 w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                      />
+                    </label>
+                    <label className="inline-flex items-center gap-2 text-sm text-slate-600">
+                      <input
+                        type="checkbox"
+                        checked={key === "day" ? capacityForm.dayWaitlistEnabled : capacityForm.nightWaitlistEnabled}
+                        onChange={(e) => setCapacityForm((prev) => ({
+                          ...prev,
+                          [key === "day" ? "dayWaitlistEnabled" : "nightWaitlistEnabled"]: e.target.checked,
+                        }))}
+                        className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
+                      />
+                      Enable waitlist placeholder
+                    </label>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex justify-end gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={closeCapacityModal}
+                  className="px-5 py-2.5 text-sm border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 text-sm bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors font-medium"
+                >
+                  Save Capacity
                 </button>
               </div>
             </form>

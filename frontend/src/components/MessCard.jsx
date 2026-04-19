@@ -9,6 +9,24 @@ const MessCard = ({ mess, onMonthlyBooking, onDailyReservation, isReservationAll
   const hasNightMenu = nightDishes.length > 0;
   const hasSpots = true;
 
+  const getCapacityStatus = (mealType) => {
+    const booked = mealType === "day"
+      ? Number(mess?.attendingTodayDay || 0)
+      : Number(mess?.attendingTodayNight || 0);
+    const rawLimit = mealType === "day"
+      ? mess?.capacity?.day?.limit
+      : mess?.capacity?.night?.limit;
+    const limit = rawLimit === null || rawLimit === undefined || rawLimit === ""
+      ? null
+      : Number(rawLimit);
+    const hasLimit = Number.isFinite(limit) && limit > 0;
+    const full = hasLimit && booked >= limit;
+    return { booked, limit: hasLimit ? limit : null, full };
+  };
+
+  const dayCapacity = getCapacityStatus("day");
+  const nightCapacity = getCapacityStatus("night");
+
   const reservedForDay = reservedMesses.some(
     (res) => res.messId === _id && res.mealType === "day"
   );
@@ -57,6 +75,9 @@ const MessCard = ({ mess, onMonthlyBooking, onDailyReservation, isReservationAll
               <div className="w-3 h-3 bg-yellow-400 rounded-full mr-2 animate-pulse"></div>
               <h4 className="text-sm font-semibold text-yellow-800">Lunch</h4>
             </div>
+            <p className="text-xs text-yellow-700 mb-2 font-medium">
+              {dayCapacity.full ? "Mess Full" : `Booked ${dayCapacity.booked} / ${dayCapacity.limit ?? "Unlimited"}`}
+            </p>
             {dayDishes.length > 0 ? (
               <div className="space-y-2">
                 {dayDishes.slice(0, 2).map((dish, index) => (
@@ -78,6 +99,9 @@ const MessCard = ({ mess, onMonthlyBooking, onDailyReservation, isReservationAll
               <div className="w-3 h-3 bg-blue-400 rounded-full mr-2 animate-pulse"></div>
               <h4 className="text-sm font-semibold text-blue-800">Dinner</h4>
             </div>
+            <p className="text-xs text-blue-700 mb-2 font-medium">
+              {nightCapacity.full ? "Mess Full" : `Booked ${nightCapacity.booked} / ${nightCapacity.limit ?? "Unlimited"}`}
+            </p>
             {nightDishes.length > 0 ? (
               <div className="space-y-2">
                 {nightDishes.slice(0, 2).map((dish, index) => (
@@ -111,6 +135,10 @@ const MessCard = ({ mess, onMonthlyBooking, onDailyReservation, isReservationAll
               <div className="text-center py-2 px-4 bg-gray-100 rounded-lg text-sm text-gray-600">
                 Lunch Reserved ✓
               </div>
+            ) : dayCapacity.full ? (
+              <div className="text-center py-2 px-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 font-medium">
+                Mess Full
+              </div>
             ) : !hasDayMenu ? (
               <div className="text-center py-2 px-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700 font-medium">
                 Menu not available yet
@@ -119,11 +147,11 @@ const MessCard = ({ mess, onMonthlyBooking, onDailyReservation, isReservationAll
               <button
                 onClick={() => onDailyReservation(mess._id, "day")}
                 className={`btn-success text-sm flex items-center justify-center gap-1 ${
-                  !hasSpots || !isReservationAllowed.day || !hasDayMenu
+                  !hasSpots || !isReservationAllowed.day || !hasDayMenu || dayCapacity.full
                     ? "opacity-50 cursor-not-allowed"
                     : ""
                 }`}
-                disabled={!hasSpots || !isReservationAllowed.day || !hasDayMenu}
+                disabled={!hasSpots || !isReservationAllowed.day || !hasDayMenu || dayCapacity.full}
               >
                 <Utensils className="w-3 h-3" />
                 Reserve Lunch
@@ -133,6 +161,10 @@ const MessCard = ({ mess, onMonthlyBooking, onDailyReservation, isReservationAll
               <div className="text-center py-2 px-4 bg-gray-100 rounded-lg text-sm text-gray-600">
                 Dinner Reserved ✓
               </div>
+            ) : nightCapacity.full ? (
+              <div className="text-center py-2 px-4 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 font-medium">
+                Mess Full
+              </div>
             ) : !hasNightMenu ? (
               <div className="text-center py-2 px-4 bg-amber-50 border border-amber-200 rounded-lg text-sm text-amber-700 font-medium">
                 Menu not available yet
@@ -141,11 +173,11 @@ const MessCard = ({ mess, onMonthlyBooking, onDailyReservation, isReservationAll
               <button
                 onClick={() => onDailyReservation(mess._id, "night")}
                 className={`bg-gradient-to-r from-indigo-500 to-purple-500 text-white font-semibold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300 text-sm flex items-center justify-center gap-1 ${
-                  !hasSpots || !isReservationAllowed.night || !hasNightMenu
+                  !hasSpots || !isReservationAllowed.night || !hasNightMenu || nightCapacity.full
                     ? "opacity-50 cursor-not-allowed"
                     : ""
                 }`}
-                disabled={!hasSpots || !isReservationAllowed.night || !hasNightMenu}
+                disabled={!hasSpots || !isReservationAllowed.night || !hasNightMenu || nightCapacity.full}
               >
                 <Utensils className="w-3 h-3" />
                 Reserve Dinner

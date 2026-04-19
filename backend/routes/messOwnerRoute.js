@@ -24,7 +24,6 @@ const getISTDayRange = () => {
 messOwnerRouter.post("/signup", async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
-    console.log("Received signup request:", req.body);
 
     const existingOwner = await messOwnerModel.findOne({ email });
     if (existingOwner) return res.status(400).json({ message: "Email already in use" });
