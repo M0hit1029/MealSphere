@@ -38,7 +38,7 @@ messOwnerRouter.post("/signup", async (req, res) => {
 
     res.cookie("messToken", token, {
       httpOnly: true,
-      secure: true,
+      secure: false,
       sameSite: "None",
       maxAge: 24 * 60 * 60 * 1000,
     });
@@ -67,8 +67,8 @@ messOwnerRouter.post("/login", async (req, res) => {
 
     res.cookie("messToken", token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "None",
+      secure: false,
+      sameSite: "Lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -96,8 +96,8 @@ messOwnerRouter.get("/auth/me", async (req, res) => {
 messOwnerRouter.post("/logout", (req, res) => {
   res.clearCookie("messToken", {
     httpOnly: true,
-    secure: true,
-    sameSite: "None",
+    secure: false,
+    sameSite: "Lax",
   });
   res.status(200).json({ message: "Logged out successfully" });
 });

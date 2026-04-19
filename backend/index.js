@@ -10,7 +10,18 @@ const jobRouter = require('./routes/jobRouter')
 const path = require('path');
 require('./cron/removeOldMembers'); // ✅ Cron job will auto start
 
-app.use(cors({ origin: ["https://meal-sphere-psi.vercel.app", "http://localhost:5173"], credentials: true }));
+app.use(cors({
+  origin: [
+    "http://localhost:5173",
+    "http://13.50.99.244:3000",
+    "http://mealspherefe.s3-website.eu-north-1.amazonaws.com",
+    "https://meal-sphere-psi.vercel.app",
+  ],
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+}));
+
 app.use(express.json());
 app.use(cookieParser())
 app.get('/', (req, res) => {

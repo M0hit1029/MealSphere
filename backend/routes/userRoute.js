@@ -44,7 +44,9 @@ userRouter.post("/signup", async (req, res) => {
     const token = jwt.sign({ id: user._id }, process.env.USER_JWT_SECRET);
 
     res.cookie("userToken", token, {
-      httpOnly: true, secure: true, sameSite: "None",
+      httpOnly: true,
+      secure: false,
+      sameSite: "Lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -66,7 +68,9 @@ userRouter.post("/login", async (req, res) => {
     const token = jwt.sign({ id: user._id }, process.env.USER_JWT_SECRET);
 
     res.cookie("userToken", token, {
-      httpOnly: true, secure: true, sameSite: "None",
+      httpOnly: true,
+      secure: false,
+      sameSite: "Lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -77,7 +81,7 @@ userRouter.post("/login", async (req, res) => {
 });
 
 userRouter.post("/logout", (req, res) => {
-  res.clearCookie("userToken", { httpOnly: true, secure: true, sameSite: "None" });
+  res.clearCookie("userToken", { httpOnly: true, secure: false, sameSite: "Lax" });
   res.json({ message: "Logged out successfully" });
 });
 
