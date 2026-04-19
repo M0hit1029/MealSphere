@@ -87,13 +87,17 @@ userRouter.post("/logout", (req, res) => {
 
 userRouter.get("/auth/me", async (req, res) => {
   try {
-    const token = req.cookies.userToken;
+    const authHeader = req.headers.authorization || "";
+    const bearerToken = authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7)
+      : null;
+    const token = req.cookies.userToken || bearerToken;
     if (!token) return res.status(401).json({ message: "Unauthorized" });
     const decoded = jwt.verify(token, process.env.USER_JWT_SECRET);
     if (!decoded) return res.status(403).json({ message: "Invalid token" });
     return res.status(200).json({ message: "Authorized" });
   } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
+    res.status(403).json({ message: "Invalid token" });
   }
 });
 

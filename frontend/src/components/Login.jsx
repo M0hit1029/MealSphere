@@ -5,11 +5,15 @@ import axios from "axios";
 import Navbar from "./Navbar";
 
 const LAST_ACTIVE_MESS_KEY = "ownerLastActiveMessId";
+const USER_TOKEN_KEY = "userAccessToken";
+const OWNER_TOKEN_KEY = "messOwnerAccessToken";
 
 const resolveMessOwnerRedirectPath = async () => {
   try {
+    const ownerToken = localStorage.getItem(OWNER_TOKEN_KEY);
     const response = await axios.get(`${import.meta.env.VITE_BASE_URL}/mess/owner/messes`, {
       withCredentials: true,
+      headers: ownerToken ? { Authorization: `Bearer ${ownerToken}` } : {},
     });
 
     const messes = response.data?.messes || [];
@@ -48,12 +52,15 @@ function LoginSignupPage() {
           : `${import.meta.env.VITE_BASE_URL}/messOwner/auth/me`;
 
       try {
+        const tokenKey = effectiveUserType === "customer" ? USER_TOKEN_KEY : OWNER_TOKEN_KEY;
+        const accessToken = localStorage.getItem(tokenKey);
         const response = await axios.get(endpoint, {
           withCredentials: true,
           headers: {
             "Content-Type": "application/json",
             "X-XSS-Protection": "1; mode=block",
             "X-Content-Type-Options": "nosniff",
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
           },
         });
 
@@ -218,7 +225,7 @@ function AuthSection({ userType, navigate }) {
           ? API_ENDPOINTS.customer.login
           : API_ENDPOINTS.messOwner.login;
 
-      await axios.post(
+      const response = await axios.post(
         endpoint,
         {
           email: formData.email.trim(),
@@ -233,6 +240,15 @@ function AuthSection({ userType, navigate }) {
           },
         }
       );
+
+      if (effectiveUserType === "customer") {
+        localStorage.setItem(USER_TOKEN_KEY, response.data?.token || "");
+        localStorage.removeItem(OWNER_TOKEN_KEY);
+      } else {
+        localStorage.setItem(OWNER_TOKEN_KEY, response.data?.token || "");
+        localStorage.removeItem(USER_TOKEN_KEY);
+      }
+
       if (effectiveUserType === "customer") {
         navigate("/user-dashboard");
       } else {
@@ -265,7 +281,7 @@ function AuthSection({ userType, navigate }) {
           ? API_ENDPOINTS.customer.signup
           : API_ENDPOINTS.messOwner.signup;
 
-      await axios.post(
+      const response = await axios.post(
         endpoint,
         {
           name: formData.name.trim(),
@@ -282,6 +298,14 @@ function AuthSection({ userType, navigate }) {
           },
         }
       );
+
+      if (effectiveUserType === "customer") {
+        localStorage.setItem(USER_TOKEN_KEY, response.data?.token || "");
+        localStorage.removeItem(OWNER_TOKEN_KEY);
+      } else {
+        localStorage.setItem(OWNER_TOKEN_KEY, response.data?.token || "");
+        localStorage.removeItem(USER_TOKEN_KEY);
+      }
 
       if (effectiveUserType === "customer") {
         navigate("/user-dashboard");

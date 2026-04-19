@@ -81,7 +81,11 @@ messOwnerRouter.post("/login", async (req, res) => {
 
 messOwnerRouter.get("/auth/me", async (req, res) => {
   try {
-    const token = req.cookies.messToken;
+    const authHeader = req.headers.authorization || "";
+    const bearerToken = authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7)
+      : null;
+    const token = req.cookies.messToken || bearerToken;
     if (!token) return res.status(401).json({ message: "Unauthorized" });
 
     const decoded = jwt.verify(token, process.env.MESS_JWT_SECRET);
@@ -89,7 +93,7 @@ messOwnerRouter.get("/auth/me", async (req, res) => {
 
     return res.status(200).json({ message: "Authorized" });
   } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
+    res.status(403).json({ message: "Invalid token" });
   }
 });
 

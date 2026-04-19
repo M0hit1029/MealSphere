@@ -36,6 +36,7 @@ const MessDashboardNavbar = () => {
       );
 
       if (response.status === 200) {
+        localStorage.removeItem('messOwnerAccessToken');
         navigate('/login-signup/messOwner', { state: { fromLogout: true } });
       } else {
         console.error('Logout failed:', response.statusText);

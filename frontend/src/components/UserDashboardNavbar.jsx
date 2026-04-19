@@ -31,6 +31,7 @@ const UserDashboardNavbar = () => {
       );
 
       if (response.status === 200) {
+        localStorage.removeItem('userAccessToken');
         navigate('/login-signup/customer', { state: { fromLogout: true } });
       } else {
         console.error('Logout failed:', response.statusText);
