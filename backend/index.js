@@ -13,6 +13,7 @@ require('./cron/removeOldMembers'); // ✅ Cron job will auto start
 app.use(cors({
   origin: [
     "http://localhost:5173",
+    "http://13.50.99.244",
     "http://13.50.99.244:3000",
     "http://mealspherefe.s3-website.eu-north-1.amazonaws.com",
     "https://meal-sphere-psi.vercel.app",
