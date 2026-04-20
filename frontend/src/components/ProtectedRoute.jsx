@@ -7,9 +7,12 @@ const ProtectedRoute = (props) => {
   useEffect(() => {
     const checkAuth = async () => {
       try {
+        const tokenKey = props.type === "user" ? "userAccessToken" : "messOwnerAccessToken";
+        const accessToken = localStorage.getItem(tokenKey);
         const response = await fetch(`${import.meta.env.VITE_BASE_URL}/${props.type}/auth/me`, {
           method: "GET",
-          credentials: "include"
+          credentials: "include",
+          headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
         });
 
         await response.json();
