@@ -2,6 +2,8 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 dotenv.config();
 
+
+//this is the changes
 console.log('MONGO_URI:', process.env.MONGO_URI);
 
     try{

@@ -1,4 +1,4 @@
-// components/Card.jsx
+// components/
 import React from "react";
 
 const Card = ({ name, address, liveLocation, menu, onDelete, onViewDetails }) => {
