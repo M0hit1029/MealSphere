@@ -24,7 +24,6 @@ const getISTDayRange = () => {
 messOwnerRouter.post("/signup", async (req, res) => {
   try {
     const { name, email, password, phone } = req.body;
-    console.log("Received signup request:", req.body);
 
     const existingOwner = await messOwnerModel.findOne({ email });
     if (existingOwner) return res.status(400).json({ message: "Email already in use" });
@@ -39,7 +38,7 @@ messOwnerRouter.post("/signup", async (req, res) => {
 
     res.cookie("messToken", token, {
       httpOnly: true,
-      secure: true,
+      secure: false,
       sameSite: "None",
       maxAge: 24 * 60 * 60 * 1000,
     });
@@ -68,8 +67,8 @@ messOwnerRouter.post("/login", async (req, res) => {
 
     res.cookie("messToken", token, {
       httpOnly: true,
-      secure: true,
-      sameSite: "None",
+      secure: false,
+      sameSite: "Lax",
       maxAge: 24 * 60 * 60 * 1000,
     });
 
@@ -82,7 +81,11 @@ messOwnerRouter.post("/login", async (req, res) => {
 
 messOwnerRouter.get("/auth/me", async (req, res) => {
   try {
-    const token = req.cookies.messToken;
+    const authHeader = req.headers.authorization || "";
+    const bearerToken = authHeader.startsWith("Bearer ")
+      ? authHeader.slice(7)
+      : null;
+    const token = req.cookies.messToken || bearerToken;
     if (!token) return res.status(401).json({ message: "Unauthorized" });
 
     const decoded = jwt.verify(token, process.env.MESS_JWT_SECRET);
@@ -90,15 +93,15 @@ messOwnerRouter.get("/auth/me", async (req, res) => {
 
     return res.status(200).json({ message: "Authorized" });
   } catch (error) {
-    res.status(500).json({ message: "Internal server error" });
+    res.status(403).json({ message: "Invalid token" });
   }
 });
 
 messOwnerRouter.post("/logout", (req, res) => {
   res.clearCookie("messToken", {
     httpOnly: true,
-    secure: true,
-    sameSite: "None",
+    secure: false,
+    sameSite: "Lax",
   });
   res.status(200).json({ message: "Logged out successfully" });
 });

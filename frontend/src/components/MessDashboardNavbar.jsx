@@ -1,12 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { Menu, LogOut, Home, MessageCircle, Settings, AppWindow } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Menu, LogOut, MessageCircle, Settings, AppWindow } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 
 const MessDashboardNavbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Show Dashboard link only on inner pages (not on main mess dashboard or create-first-mess)
+  const isMainDashboard = location.pathname === '/mess-dashboard' || location.pathname === '/mess-dashboard/create-first-mess' || /^\/mess-dashboard\/[^/]+$/.test(location.pathname);
+  const showDashboardLink = !isMainDashboard;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,6 +36,7 @@ const MessDashboardNavbar = () => {
       );
 
       if (response.status === 200) {
+        localStorage.removeItem('messOwnerAccessToken');
         navigate('/login-signup/messOwner', { state: { fromLogout: true } });
       } else {
         console.error('Logout failed:', response.statusText);
@@ -51,24 +57,21 @@ const MessDashboardNavbar = () => {
       <div className="container mx-auto px-6 py-4 flex justify-between items-center">
         {/* Logo with Enhanced Animation */}
         <div className="relative group">
-          <div className="absolute -inset-2 bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-300 animate-pulse"></div>
+          <div className="absolute -inset-2 bg-gradient-to-r from-amber-400 to-orange-500 rounded-lg blur opacity-25 group-hover:opacity-75 transition duration-300"></div>
           <div className="relative text-3xl font-extrabold tracking-wide">
             <span className="bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent drop-shadow-lg animate-glow">
               MealSphere
             </span>
           </div>
-          <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-400 rounded-full animate-ping"></div>
-          <div className="absolute -top-1 -right-1 w-3 h-3 bg-orange-500 rounded-full"></div>
         </div>
 
         {/* Desktop Navigation */}
         <div className="hidden md:flex items-center space-x-6">
-          <NavButton icon={Home} href="/">
-            Home
-          </NavButton>
-          <NavButton icon={AppWindow} href="/mess-dashboard">
-            Dashboard
-          </NavButton>
+          {showDashboardLink && (
+            <NavButton icon={AppWindow} href="/mess-dashboard">
+              Dashboard
+            </NavButton>
+          )}
           <button
             onClick={handleLogout}
             className="group relative overflow-hidden bg-gradient-to-r from-red-500 to-red-600 text-white font-semibold py-3 px-6 rounded-full shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
@@ -103,12 +106,11 @@ const MessDashboardNavbar = () => {
       >
         <div className="bg-white/95 backdrop-blur-lg shadow-2xl border-t border-gray-200/50">
           <div className="flex flex-col p-6 space-y-4">
-            <MobileNavLink icon={Home} href="/" onClick={() => setIsMenuOpen(false)}>
-              Home
-            </MobileNavLink>
-            <MobileNavLink icon={AppWindow} href="/mess-dashboard" onClick={() => setIsMenuOpen(false)}>
-              Dashboard
-            </MobileNavLink>
+            {showDashboardLink && (
+              <MobileNavLink icon={AppWindow} href="/mess-dashboard" onClick={() => setIsMenuOpen(false)}>
+                Dashboard
+              </MobileNavLink>
+            )}
             <button
               onClick={() => {
                 handleLogout();

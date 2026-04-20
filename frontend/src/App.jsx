@@ -11,9 +11,11 @@ const UserDashboard = lazy(() => import("./pages/UserDashboard"));
 const MessDashboard = lazy(() => import("./pages/MessDashboard"));
 const Trial = lazy(() => import("./components/Trial"));
 const AddMessPage = lazy(() => import("./pages/AddNewMess"));
+const CreateFirstMessPage = lazy(() => import("./pages/CreateFirstMess"));
 const RegisteredMembers = lazy(() => import("./pages/RegisteredMembers"));
 const Attendance = lazy(() => import("./pages/AttendencePage"));
 const UserAttendance = lazy(() => import("./pages/UserAttendance"));
+const MessStats = lazy(() => import("./pages/MessStats"));
 
 function App() {
   return (
@@ -28,11 +30,12 @@ function App() {
         </Route>
         <Route element={<ProtectedRoute type="messOwner"/>}>
           <Route path="/mess-dashboard" element={<MessDashboard />} />
+          <Route path="/mess-dashboard/:messId" element={<MessDashboard />} />
+          <Route path="/mess-dashboard/create-first-mess" element={<CreateFirstMessPage />} />
           <Route path="mess-dashboard/add-mess" element={<AddMessPage/>}/>
           <Route path="mess-dashboard/:messId/registered-members" element={<RegisteredMembers />} />
           <Route path="mess-dashboard/:messId/attendance" element={<Attendance />} />
-          <Route path="mess-dashboard/:messId/user-attendance/:userId" element={<UserAttendance />} />
-        </Route>
+          <Route path="mess-dashboard/:messId/user-attendance/:userId" element={<UserAttendance />} />          <Route path="mess-dashboard/:messId/stats" element={<MessStats />} />        </Route>
         <Route path="/trial" element={<Trial/>}></Route>
       </Routes>
     </Suspense>

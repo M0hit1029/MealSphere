@@ -139,7 +139,14 @@ const AddMessPage = () => {
       );
 
       setSuccess(response.data.message);
-      setTimeout(() => navigate("/mess-dashboard"), 2000);
+      const createdMessId = response.data?.mess?._id;
+      if (createdMessId) {
+        localStorage.setItem("ownerLastActiveMessId", createdMessId);
+      }
+      setTimeout(
+        () => navigate(createdMessId ? `/mess-dashboard/${createdMessId}` : "/mess-dashboard"),
+        2000
+      );
     } catch (err) {
       setError(err.response?.data?.message || "Failed to register mess");
     } finally {

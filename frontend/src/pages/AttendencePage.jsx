@@ -11,6 +11,8 @@ function Attendance() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [actionError, setActionError] = useState("");
+  const [markingKey, setMarkingKey] = useState("");
 
   const fetchAttendance = async () => {
     try {
@@ -43,24 +45,68 @@ function Attendance() {
   const dayNonEnrolled = attendanceData.nonEnrolledCustomers.filter((customer) => customer.comingDay);
   const nightEnrolled = attendanceData.enrolledMembers.filter((member) => member.comingNight);
   const nightNonEnrolled = attendanceData.nonEnrolledCustomers.filter((customer) => customer.comingNight);
+
+  const handleMarkAttendance = async (userId, mealType, attended) => {
+    const key = `${userId}-${mealType}`;
+    try {
+      setActionError("");
+      setMarkingKey(key);
+      await axios.patch(
+        `${import.meta.env.VITE_BASE_URL}/mess/${messId}/attendance/${userId}/${mealType}`,
+        { attended },
+        { withCredentials: true }
+      );
+      await fetchAttendance();
+    } catch (err) {
+      console.error("Mark attendance error:", err);
+      setActionError(err.response?.data?.message || "Failed to update attendance.");
+    } finally {
+      setMarkingKey("");
+    }
+  };
+
   const renderUserList = (users, isEnrolled, mealType) => (
     <div className="space-y-2">
       {users.length > 0 ? (
-        users.map((entry, index) => (
+        users.map((entry) => {
+          const attended = mealType === "comingDay" ? entry.dayMarked : entry.nightMarked;
+          const reserveFlag = mealType === "comingDay" ? entry.comingDay : entry.comingNight;
+          const meal = mealType === "comingDay" ? "day" : "night";
+          const key = `${entry.user._id}-${meal}`;
+
+          return (
           <div
             key={entry.user._id}
-            className={`p-3 rounded-lg flex items-center justify-between ${
-              isEnrolled && !entry[mealType] ? "bg-red-100" : "bg-green-100"
+            className={`p-3 rounded-lg flex items-center justify-between gap-3 ${
+              attended ? "bg-green-100" : "bg-slate-100"
             }`}
           >
-            <span className="text-sm font-medium text-gray-800">
-              {entry.user.name || "Unknown User"}
-            </span>
-            <span className="text-xs text-gray-600">
-              {isEnrolled ? (entry[mealType] ? "Attending" : "Absent") : "Attending"}
-            </span>
+            <div>
+              <p className="text-sm font-medium text-gray-800">{entry.user.name || "Unknown User"}</p>
+              <p className="text-xs text-gray-600">
+                {isEnrolled
+                  ? reserveFlag
+                    ? "Reserved"
+                    : "Not reserved (owner can still mark)"
+                  : "Reserved"}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`text-xs font-semibold px-2 py-1 rounded-full ${attended ? "bg-green-200 text-green-800" : "bg-slate-200 text-slate-700"}`}>
+                {attended ? "Present" : "Not marked"}
+              </span>
+              <button
+                type="button"
+                onClick={() => handleMarkAttendance(entry.user._id, meal, !attended)}
+                disabled={markingKey === key}
+                className={`text-xs font-semibold px-3 py-1 rounded-md transition-all ${attended ? "bg-amber-500 text-white hover:bg-amber-600" : "bg-blue-600 text-white hover:bg-blue-700"} ${markingKey === key ? "opacity-60 cursor-not-allowed" : ""}`}
+              >
+                {markingKey === key ? "Saving..." : attended ? "Unmark" : "Mark Present"}
+              </button>
+            </div>
           </div>
-        ))
+          );
+        })
       ) : (
         <p className="text-sm text-gray-500 italic">
           {isEnrolled ? "No enrolled members" : "No non-enrolled customers"} for this meal.
@@ -91,6 +137,11 @@ function Attendance() {
         </div>
       ) : (
         <div className="space-y-8">
+          {actionError && (
+            <div className="card p-4 bg-red-50 border-red-200 text-red-700 text-sm">
+              {actionError}
+            </div>
+          )}
           {/* Day Attendance Section */}
           <div className="card p-6 bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200">
             <h2 className="text-2xl font-semibold text-yellow-800 mb-4 flex items-center gap-2">
@@ -101,7 +152,7 @@ function Attendance() {
               {/* Enrolled Members */}
               <div>
                 <h3 className="text-lg font-medium text-gray-800 mb-2">
-                  Enrolled Members (Total: {attendanceData.enrolledMembers.length}, Attending: {dayEnrolled.length})
+                  Enrolled Members (Total: {attendanceData.enrolledMembers.length}, Reserved: {dayEnrolled.length})
                 </h3>
                 {renderUserList(attendanceData.enrolledMembers, true, "comingDay")}
               </div>
@@ -125,7 +176,7 @@ function Attendance() {
               {/* Enrolled Members */}
               <div>
                 <h3 className="text-lg font-medium text-gray-800 mb-2">
-                  Enrolled Members (Total: {attendanceData.enrolledMembers.length}, Attending: {nightEnrolled.length})
+                  Enrolled Members (Total: {attendanceData.enrolledMembers.length}, Reserved: {nightEnrolled.length})
                 </h3>
                 {renderUserList(attendanceData.enrolledMembers, true, "comingNight")}
               </div>
